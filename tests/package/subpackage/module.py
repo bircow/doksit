@@ -63,6 +63,10 @@ class Foo:
         """This will be also ignored."""
 
 
+class Bar:
+    pass
+
+
 def function(n) -> int:
     """This is a brief description.
 
