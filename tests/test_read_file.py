@@ -51,7 +51,7 @@ class TestReadFileFunction(unittest.TestCase):
 
         """
         result = read_file("package/module.py")
-        
+
         assert result[0] == "package/module.py"
         assert list(result[1].keys()) == ["Foo", "Bar"]
         assert result[1]["Foo"] == ["__init__", "method"]
