@@ -38,7 +38,8 @@ class TestReadFileFunction(unittest.TestCase):
                 == "function_name"
 
     def test_read_sample_file_from_sample_package(self):
-        """The file is located here in 'package/module.py'.
+        """
+        The file is located here in 'package/module.py'.
 
         Expected result is:
 
