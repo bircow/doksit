@@ -1,3 +1,4 @@
+import os
 import unittest
 
 from doksit.main import read_file, class_regex, method_regex, function_regex
@@ -17,7 +18,6 @@ class TestReadFileFunction(unittest.TestCase):
 
     def test_regex_for_methods(self):
         methods = [
-            "    def sample_method()",  # a static method
             "    def sample_method(cls)",
             "    def sample_method(cls, arg1, arg2, ...)",
             "    def sample_method(self)",
@@ -38,20 +38,24 @@ class TestReadFileFunction(unittest.TestCase):
                 == "function_name"
 
     def test_read_sample_file_from_sample_package(self):
-        """The file is located in 'tests/package/module.py'.
+        """The file is located here in 'package/module.py'.
 
         Expected result is:
 
-            (OrderedDict([('Foo', ['__init__', 'method']), ('Bar', [])]),
-            ['function', 'another_function'])
+            (
+                "package/module.py",
+                OrderedDict([('Foo', ['__init__', 'method']), ('Bar', [])]),
+                ['function', 'another_function']
+            )
 
         """
-        result = read_file()
-
-        assert list(result[0].keys()) == ["Foo", "Bar"]
-        assert result[0]["Foo"] == ["__init__", "method"]
-        assert not result[0]["Bar"]
-        assert result[1] == ["function", "another_function"]
+        result = read_file("package/module.py")
+        
+        assert result[0] == "package/module.py"
+        assert list(result[1].keys()) == ["Foo", "Bar"]
+        assert result[1]["Foo"] == ["__init__", "method"]
+        assert not result[1]["Bar"]
+        assert result[2] == ["function", "another_function"]
 
 
 if __name__ == "__main__":

@@ -6,11 +6,11 @@ from typing import List, Tuple
 from doksit.utils import OrderedDict
 
 class_regex = re.compile("^class (\w+):?|\(")
-method_regex = re.compile("^    def ([\w_]+)")
+method_regex = re.compile("^    def ([\w_]+)\((self|cls)")
 function_regex = re.compile("^def ([\w_]+)")
 
 
-def read_file(file_path: str) -> Tuple[OrderedDict, List[str]]:
+def read_file(file_path: str) -> Tuple[str, OrderedDict, List[str]]:
     """Get names for classes including methods inside and functions.
 
     Unlike Pydoc the Doksit cares about order of objects specified above in the
@@ -24,12 +24,12 @@ def read_file(file_path: str) -> Tuple[OrderedDict, List[str]]:
         First item contains ordered dict with class names (key) and its
         methods (value). Second items contains function names.
     """
-    path = os.getcwd() + "/" + file_path
+    absolute_path = os.getcwd() + "/" + file_path
 
     classes = OrderedDict()
     functions = []
 
-    with open(path) as f:
+    with open(absolute_path) as f:
         file = f.readlines()
 
     for line in file:
@@ -47,7 +47,7 @@ def read_file(file_path: str) -> Tuple[OrderedDict, List[str]]:
             if function_regex.search(line):
                 functions.append(function_regex.search(line).group(1))
 
-    return classes, functions
+    return file_path, classes, functions
 
 
 file_paths = []
