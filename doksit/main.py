@@ -1,3 +1,4 @@
+import inspect
 import os
 import re
 import sys
@@ -5,13 +6,37 @@ from typing import List, Tuple
 
 from doksit.utils import OrderedDict
 
+file_paths = []
+
+
+def find_files(directory_path: str) -> None:
+    """
+    Get relative paths for all python files in the given directory and
+    subdirectories.
+
+    Files in '__pycache__' directories are excluded. The same goes for
+    '__init__.py' and '__main__.py'.
+
+    Arguments:
+        directory_path:
+            Relative directory path.
+    """
+    for entry in os.scandir(directory_path):
+        if entry.is_dir() and entry.name != "__pycache__":
+            find_files(entry.path)
+        elif entry.is_file() and entry.name.endswith(".py") \
+                and entry.name not in ["__init__.py", "__main__.py"]:
+            file_paths.append(entry.path)
+
+
 class_regex = re.compile("^class (\w+):?|\(")
 method_regex = re.compile("^    def ([\w_]+)\((self|cls)")
 function_regex = re.compile("^def ([\w_]+)")
 
 
 def read_file(file_path: str) -> Tuple[str, OrderedDict, List[str]]:
-    """Get names for classes including methods inside and functions.
+    """
+    Get names for classes including methods inside and functions.
 
     Unlike Pydoc the Doksit cares about order of objects specified above in the
     given file + omits magic methods except the '__init__'.
@@ -21,8 +46,8 @@ def read_file(file_path: str) -> Tuple[str, OrderedDict, List[str]]:
             Relative file path.
 
     Returns:
-        First item contains ordered dict with class names (key) and its
-        methods (value). Second items contains function names.
+        3-tuple, where first item contains relative file path, second ordered
+        dict with class names (key) and its. Third function names.
     """
     absolute_path = os.getcwd() + "/" + file_path
 
@@ -50,30 +75,63 @@ def read_file(file_path: str) -> Tuple[str, OrderedDict, List[str]]:
     return file_path, classes, functions
 
 
-file_paths = []
+output = "# API Rereference\n\n"
 
 
-def find_files(directory_path: str) -> None:
-    """Get relative paths for all python files in the given directory and
-    subdirectories.
+def get_documentation(file_metadata: tuple) -> None:
+    """
+    Import from the given module objects, get their docstring and annotations
+    and put them to the global variabla 'output' at the end.
 
-    Files in '__pycache__' directories are excluded. The same goes for
-    '__init__.py' and '__main__.py'.
+    If the module doesn't have any class or function then the module will be
+    omitted (no output). Next, if the object doesn't have a docstring then
+    only object name will be mentioned.
 
     Arguments:
-        directory_path:
-            Relative directory path.
+        file_metadata:
+            Returned value from the 'read_file' function.
     """
-    for entry in os.scandir(directory_path):
-        if entry.is_dir() and entry.name != "__pycache__":
-            find_files(entry.path)
-        elif entry.is_file() and entry.name.endswith(".py") \
-                and entry.name not in ["__init__.py", "__main__.py"]:
-            file_paths.append(entry.path)
+    file_path, classes, functions = file_metadata
+    module = file_path.replace("/", ".").rstrip(".py")
+
+    if not classes and not functions:
+        return
+
+    global output
+    output += "## {}\n\n".format(module)
+
+    if classes:
+        for class_name in classes:
+            exec("from {0} import {1} as cls".format(module, class_name))
+
+            imported_class = locals()["cls"]
+            class_docstring = inspect.getdoc(imported_class) or ""
+
+            output += "### class {0}.{1}\n\n".format(module, class_name)
+            output += class_docstring + "\n\n"
+
+            for method_name in classes[class_name]:
+                method_object = getattr(imported_class, method_name)
+                method_docstring = inspect.getdoc(method_object)
+
+                output += "#### .{}()\n\n".format(method_name)
+                output += method_docstring + "\n\n"
+
+    if functions:
+        for function_name in functions:
+            exec("from {0} import {1} as func".format(module, function_name))
+
+            imported_function = locals()["func"]
+            function_docstring = inspect.getdoc(imported_function) or ""
+
+            output += "### function {0}.{1}\n\n".format(module, function_name)
+            output += function_docstring + "\n\n"
 
 
-def main():
+def main() -> None:
     find_files(sys.argv[1])
 
     for file in reversed(file_paths):
-        read_file(file)
+        get_documentation(read_file(file))
+
+    print(output[:-2])
