@@ -14,6 +14,11 @@ def find_files(directory_path: str) -> None:
     Get relative paths for all python files in the given directory and
     subdirectories.
 
+    Relative paths will be inserted into global variable 'file_paths'.
+
+    Example:
+        ["package/module.py", "package/subpackage/module.py"]
+
     Files in '__pycache__' directories are excluded. The same goes for
     '__init__.py' and '__main__.py'.
 
@@ -39,15 +44,19 @@ def read_file(file_path: str) -> Tuple[str, OrderedDict, List[str]]:
     Get names for classes including methods inside and functions.
 
     Unlike Pydoc the Doksit cares about order of objects specified above in the
-    given file + omits magic methods except the '__init__'.
+    given file + also omits magic methods except the '__init__'.
 
     Arguments:
         file_path:
             Relative file path.
 
     Returns:
-        3-tuple, where first item contains relative file path, second ordered
-        dict with class names (key) and its. Third function names.
+        3-tuple, where first item is relative file path, second is ordered
+        dict with class names and methods and third is list of function names.
+
+    Example:
+        ("package.module", OrderedDict({"Foo": ["__init__", "method_name"]),
+        ["function_name"])
     """
     absolute_path = os.getcwd() + "/" + file_path
 
@@ -80,16 +89,15 @@ output = "# API Rereference\n\n"
 
 def get_documentation(file_metadata: tuple) -> None:
     """
-    Import from the given module objects, get their docstring and annotations
-    and put them to the global variabla 'output' at the end.
+    Create documentation for objects from the given file (module), if there
+    are any.
 
-    If the module doesn't have any class or function then the module will be
-    omitted (no output). Next, if the object doesn't have a docstring then
-    only object name will be mentioned.
+    The documentation will be inserted into global variable 'output' which
+    contains entire documentation for the given package.
 
     Arguments:
         file_metadata:
-            Returned value from the 'read_file' function.
+            Returned data from the 'read_file' function from 'doksit.main'.
     """
     file_path, classes, functions = file_metadata
     module = file_path.replace("/", ".").rstrip(".py")
