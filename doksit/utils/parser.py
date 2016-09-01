@@ -292,4 +292,7 @@ def markdown_docstring(docstring: str,
         elif line.startswith("Yields:"):
             splited_docstring[line_number] = "**Yields:**"
 
+        elif line.startswith("Warning:"):
+            splited_docstring[line_number] = "**Warning:**"
+
     return "\n".join(splited_docstring)
