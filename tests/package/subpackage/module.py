@@ -13,11 +13,13 @@ class Foo:
         foo (str):
             Foo is the attribute.
         bar (int):
-            Bar is another attribute.
+            Bar is another
+            attribute.
 
     Todo:
         - one thing
-        - two things
+        - two
+            things
     """
 
     def __init__(self, x: str, y: float = 1.0, z: List[int] = []) -> None:
@@ -34,8 +36,12 @@ class Foo:
         Raises:
             AssertionError:
                 Assertion failed.
+            TypeError:
+                TypeError
+                description.
             ValueError:
-                1. Invalid argument for 'x'.
+                1. Invalid argument for
+                    'x'.
                 2. Invalid argument for 'y'.
                 3. Invalid argument for 'z'.
         """
@@ -49,8 +55,7 @@ class Foo:
             This is a warning.
 
         Returns:
-            bool:
-                Description.
+            True.
         """
 
     def _protected(self) -> list:
@@ -77,8 +82,7 @@ def function(n) -> int:
             Description of 'n'.
 
     Yields:
-        int:
-            Description.
+        Integer.
 
     Example:
         This is an example code.
@@ -88,6 +92,10 @@ def function(n) -> int:
 def another_function() -> None:
     """This is a brief description."""
     pass
+
+
+def _hidden_function() -> None:
+    """This will be ignored."""
 
 
 if __name__ == "__main__":
