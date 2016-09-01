@@ -1,13 +1,90 @@
-def markdown_docstring(docstring: str) -> str:
+from collections import OrderedDict
+import re
+
+parameter_regex = re.compile("[\w_]+:?([\w_\[\]\.]+)?=?(.+)?")
+
+
+def parse_parameters(parameters: OrderedDict) -> dict:
+    """
+    Parse the given parameters (come from a method / function) to readable
+    format.
+
+    This function is used internally by 'markdown_docstring' method from
+    'doksit.utils.parser' for markdowning a 'Arguments' section in a docstring.
+
+    Arguments:
+        parameters:
+            Parameters of method / function with annotations and default
+            values if any.
+
+    Returns:
+        Dictionary of parameters names with parsed string for documentation.
+
+    Example:
+        {"foo": "foo (str)", "bar": "bar (int, optional, default 0)"}
+    """
+    output = {}
+
+    for parameter in parameters:
+        if parameter in ["self", "cls"]:
+            continue
+        else:
+            to_parse = str(parameters[parameter])
+            annotation, default = \
+                parameter_regex.search(to_parse).groups()
+
+            if annotation.startswith("typing."):
+                # Annotation is for example 'typing.List', but this form
+                # user didn't write. He / she wrote eg. 'List[str]', which is
+                # internally in Python 'typing.List<~T>[str]
+
+                bad_annotation = str(parameters[parameter].annotation)
+                annotation = bad_annotation.lstrip("typing.").replace(
+                    "<~T>", "")
+
+            output[parameter] = "{0} ({1}".format(parameter, annotation)
+
+            if default:
+                output[parameter] = output[parameter] + ", optional" \
+                    ", default {}".format(default)
+
+            output[parameter] = output[parameter] + ")"
+
+    return output
+
+
+def markdown_docstring(docstring: str,
+                       parameters: OrderedDict = OrderedDict()) \
+        -> str:
     """
     Read the given docstring and convert it to Markdown.
+
+    This function is used internally by 'get_documentation' from 'doksit.main'.
 
     Arguments:
         docstring:
             Docstring of class / method / function.
+        parameters:
+            Parameters of method / function which will be passed to
+            'parse_parameters' function from 'doksit.utils.parser'.
 
     Returns:
         Docstring in Markdown format.
+
+    Example:
+        This is a brif description of object.
+        \n
+        This is a long paragraph.
+        \n
+        **Arguments**:
+        \n
+        - foo (str):
+            - Foo description.
+        - bar (int, optional, 1):
+            - Bar description.
+        \n
+        **Returns:**
+            True if something.
     """
     splited_docstring = docstring.split("\n")
 
@@ -17,7 +94,7 @@ def markdown_docstring(docstring: str) -> str:
 
         elif line.startswith("Attributes:"):
             """
-            Convert
+            Convert for example:
 
                 Arguments:
                     attribute_name (type):
@@ -40,6 +117,7 @@ def markdown_docstring(docstring: str) -> str:
 
             attributes = splited_docstring[(line_number + 1):]
             lines = 0
+            is_first_line_description = False
 
             for attribute in attributes:
                 if attribute == "":  # End of 'Attributes' section.
@@ -68,7 +146,7 @@ def markdown_docstring(docstring: str) -> str:
 
         elif line.startswith("Example:"):
             """
-            Convert
+            Convert for example:
 
                 Example:
                     >>> x = 1
@@ -104,7 +182,7 @@ def markdown_docstring(docstring: str) -> str:
 
         elif line.startswith("Raises:"):
             """
-            Convert
+            Convert for example:
 
                 Raises:
                     AssertionError:
@@ -135,6 +213,7 @@ def markdown_docstring(docstring: str) -> str:
 
             errors = splited_docstring[(line_number + 1):]
             lines = 0
+            is_first_line_description = False
 
             for error in errors:
                 if error == "":  # End of 'Raises' section.
@@ -176,21 +255,23 @@ def markdown_docstring(docstring: str) -> str:
 
         elif line.startswith("Todo:"):
             """
-            Convert
+            Convert for example:
 
                 Todo:
-                    - one
-                    - two
+                    - one item
+                    - two items
+                        over two lines
 
             to:
 
                 **Todo:**:
 
-                - [ ] one
-                - [ ] two
+                - [ ] one item
+                - [ ] two items
+                over two lines
             """
             splited_docstring[line_number] = "**Todo:**\n"
-            
+
             todo_list = splited_docstring[(line_number + 1):]
             lines = 0
 
@@ -202,6 +283,11 @@ def markdown_docstring(docstring: str) -> str:
                     lines += 1
                     splited_docstring[line_number + lines] = \
                         todo.replace("    -", "- [ ]")
+
+                elif todo.startswith("        "):
+                    lines += 1
+                    splited_docstring[line_number + lines] = \
+                        todo.lstrip(" ")
 
         elif line.startswith("Yields:"):
             splited_docstring[line_number] = "**Yields:**"
