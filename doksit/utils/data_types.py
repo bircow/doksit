@@ -5,5 +5,5 @@ class OrderedDict(collections.OrderedDict):
     """Upgraded 'OrderedDict' from module 'collections'."""
 
     def last(self):
-        """Get a name of the last key"""
+        """Get the name of the last inserted key."""
         return next(reversed(self))
