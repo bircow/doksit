@@ -33,7 +33,7 @@ def parse_parameters(parameters: OrderedDict) -> dict:
             annotation, default = \
                 parameter_regex.search(to_parse).groups()
 
-            if annotation.startswith("typing."):
+            if annotation is not None and annotation.startswith("typing."):
                 # Annotation is for example 'typing.List', but this form
                 # user didn't write. He / she wrote eg. 'List[str]', which is
                 # internally in Python 'typing.List<~T>[str]
@@ -53,36 +53,40 @@ def parse_parameters(parameters: OrderedDict) -> dict:
     return output
 
 
+argument_regex = re.compile("    ([\w_\*]+):")
+
+
 def markdown_docstring(docstring: str,
                        parameters: OrderedDict = OrderedDict()) \
         -> str:
     """
     Read the given docstring and convert it to Markdown.
 
-    This function is used internally by 'get_documentation' from 'doksit.main'.
+    This function is used internally by 'get_documentation' from the
+    'doksit.main'.
 
     Arguments:
         docstring:
             Docstring of class / method / function.
         parameters:
-            Parameters of method / function which will be passed to
-            'parse_parameters' function from 'doksit.utils.parser'.
+            Parameters of method / function which will be passed to the
+            'parse_parameters' function from the 'doksit.utils.parser'.
 
     Returns:
         Docstring in Markdown format.
 
     Example:
         This is a brif description of object.
-        \n
+        /n
         This is a long paragraph.
-        \n
+        /n
         **Arguments**:
-        \n
+        /n
         - foo (str):
             - Foo description.
         - bar (int, optional, 1):
             - Bar description.
-        \n
+        /n
         **Returns:**
             True if something.
     """
@@ -90,13 +94,71 @@ def markdown_docstring(docstring: str,
 
     for line_number, line in enumerate(splited_docstring):
         if line.startswith("Arguments:"):
+            """
+            Convert for example:
+
+                Arguments:
+                    foo:
+                        Argument description.
+                    bar:
+                        Argument description
+                        over two lines.
+
+            to:
+
+                **Arguments:**:
+
+                - foo (str):
+                    - Argument description.
+                - bar (int, optional, default 10):
+                    - Argument description
+                over two lines.
+            """
             splited_docstring[line_number] = "**Arguments:**\n"
+
+            arguments = splited_docstring[(line_number + 1):]
+            lines = 0
+            is_first_line_description = False
+
+            parsed_parameters = parse_parameters(parameters)
+
+            for argument in arguments:
+                if argument == "":  # End of 'Arguments' section.
+                    break
+
+                elif argument.startswith("        "):
+                    lines += 1
+
+                    if is_first_line_description:
+                        splited_docstring[line_number + lines] = \
+                            "    - " + argument.lstrip(" ")
+
+                        is_first_line_description = False
+                    else:
+                        splited_docstring[line_number + lines] = \
+                            argument.lstrip(" ")
+
+                elif argument.startswith("    "):
+                    lines += 1
+
+                    argument_name = argument_regex.search(argument).group(1)
+
+                    if argument_name.startswith("*"):  # Eg. *args or **kwargs
+                        argument_name = argument_name.lstrip("*")
+
+                    parsed_argument = parsed_parameters[argument_name]
+                    splited_docstring[line_number + lines] = \
+                        "- " + parsed_argument
+
+                    # Next line should be an argument description.
+
+                    is_first_line_description = True
 
         elif line.startswith("Attributes:"):
             """
             Convert for example:
 
-                Arguments:
+                Attributes:
                     attribute_name (type):
                         Attribute description.
                     another_one (type):
@@ -105,7 +167,7 @@ def markdown_docstring(docstring: str,
 
             to:
 
-                **Arguments:**:
+                **Attributes:**:
 
                 - attribute_name (type):
                     - Attribute description.
@@ -149,18 +211,28 @@ def markdown_docstring(docstring: str,
             Convert for example:
 
                 Example:
-                    >>> x = 1
-                    >>> y = 2
-                    >>> print(x * y)
+                    x = 1
+                    y = 2
+                    print(x * y)
+                    /n
+                    # Line after break line
+                    /n
+                    class Foo:
+                        pass
 
             to:
 
                 Example:
 
                 ```python
-                >>> x = 1
-                >>> y = 2
-                >>> print(x * y)
+                x = 1
+                y = 2
+                print(x * y)
+
+                # Line after break line
+
+                class Foo:
+                    pass
                 ```
             """
             codes = splited_docstring[(line_number + 1):]
@@ -170,9 +242,19 @@ def markdown_docstring(docstring: str,
                 if code == "":  # End of 'Example' section.
                     break
 
+                elif code.startswith("        "):
+                    lines += 1
+                    splited_docstring[line_number + lines] = \
+                        code[4:]
+
                 elif code.startswith("    "):
                     lines += 1
-                    splited_docstring[line_number + lines] = code[4:]
+
+                    if code.lstrip(" ").startswith("/n"):
+                        splited_docstring[line_number + lines] = ""
+                    else:
+                        splited_docstring[line_number + lines] = \
+                            code.lstrip(" ")
 
             splited_docstring.insert((line_number + 1), "\n```python")
             splited_docstring.insert((line_number + 1 + lines + 1), "```")
