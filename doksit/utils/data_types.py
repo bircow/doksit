@@ -1,7 +1,7 @@
 import collections
 
 
-class OrderedDict(collections.OrderedDict):
+class MyOrderedDict(collections.OrderedDict):
     """Upgraded 'OrderedDict' from module 'collections'."""
 
     def last(self):

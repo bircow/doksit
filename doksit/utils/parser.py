@@ -21,7 +21,7 @@ def parse_parameters(parameters: OrderedDict) -> dict:
         Dictionary of parameters names with parsed string for documentation.
 
     Example:
-        {"foo": "foo (str)", "bar": "bar (int, optional, default 0)"}
+        {"foo": "foo (str):", "bar": "bar (int, optional, default 0):"}
     """
     output = {}
 
@@ -48,7 +48,7 @@ def parse_parameters(parameters: OrderedDict) -> dict:
                 output[parameter] = output[parameter] + ", optional" \
                     ", default {}".format(default)
 
-            output[parameter] = output[parameter] + ")"
+            output[parameter] = output[parameter] + "):"
 
     return output
 
@@ -77,16 +77,16 @@ def markdown_docstring(docstring: str,
 
     Example:
         This is a brif description of object.
-        /n
+
         This is a long paragraph.
-        /n
+
         **Arguments**:
-        /n
+
         - foo (str):
             - Foo description.
         - bar (int, optional, 1):
             - Bar description.
-        /n
+
         **Returns:**
             True if something.
     """
@@ -214,9 +214,9 @@ def markdown_docstring(docstring: str,
                     x = 1
                     y = 2
                     print(x * y)
-                    /n
+
                     # Line after break line
-                    /n
+
                     class Foo:
                         pass
 
@@ -239,22 +239,22 @@ def markdown_docstring(docstring: str,
             lines = 0
 
             for code in codes:
-                if code == "":  # End of 'Example' section.
-                    break
+                if code == "":
+                    # Check if it's truly end of the 'Example' section or
+                    # just line break in the codes.
+
+                    if codes[lines + 1].startswith("    "):
+                        lines += 1
+                    else:
+                        break
 
                 elif code.startswith("        "):
                     lines += 1
-                    splited_docstring[line_number + lines] = \
-                        code[4:]
+                    splited_docstring[line_number + lines] = code[4:]
 
                 elif code.startswith("    "):
                     lines += 1
-
-                    if code.lstrip(" ").startswith("/n"):
-                        splited_docstring[line_number + lines] = ""
-                    else:
-                        splited_docstring[line_number + lines] = \
-                            code.lstrip(" ")
+                    splited_docstring[line_number + lines] = code.lstrip(" ")
 
             splited_docstring.insert((line_number + 1), "\n```python")
             splited_docstring.insert((line_number + 1 + lines + 1), "```")
@@ -307,6 +307,8 @@ def markdown_docstring(docstring: str,
 
                 elif error.startswith("        "):
                     lines += 1
+
+                    # May be ordered (numbered) error description or not.
 
                     try:
                         int(error.lstrip(" ")[0])

@@ -6,7 +6,7 @@ import sys
 from typing import List, Tuple
 
 from doksit.cli import parser as cli_parser
-from doksit.utils import OrderedDict
+from doksit.utils import MyOrderedDict
 from doksit.utils import markdown_docstring
 
 file_paths = []
@@ -58,12 +58,12 @@ method_regex = re.compile("^    def ([\w_]+)\((self|cls)")
 function_regex = re.compile("^def ([\w_]+)")
 
 
-def read_file(file_path: str) -> Tuple[str, OrderedDict, List[str]]:
+def read_file(file_path: str) -> Tuple[str, MyOrderedDict, List[str]]:
     """
     Get names for classes and methods inside and functions if there are any.
 
     Unlike Pydoc the Doksit cares about order of objects specified above in the
-    given file + omits magic methods except the '__init__'.
+    given file + omits magic methods except the '\_\_init\_\_'.
 
     Arguments:
         file_path:
@@ -74,7 +74,7 @@ def read_file(file_path: str) -> Tuple[str, OrderedDict, List[str]]:
         dict with class names and methods and third is list of function names.
 
     Example:
-        ("package.module", OrderedDict({"Foo": ["__init__", "method_name"]),
+        ("package.module", MyOrderedDict({"Foo": ["__init__", "method_name"]),
         ["function_name"])
     """
     absolute_path = os.getcwd() + "/" + file_path
@@ -82,7 +82,7 @@ def read_file(file_path: str) -> Tuple[str, OrderedDict, List[str]]:
     with open(absolute_path) as f:
         file = f.readlines()
 
-    classes = OrderedDict()
+    classes = MyOrderedDict()
     functions = []
 
     for line in file:
@@ -106,10 +106,10 @@ def read_file(file_path: str) -> Tuple[str, OrderedDict, List[str]]:
     return file_path, classes, functions
 
 
-output = "# API Rereference\n\n"
+output = "# API Reference\n\n"
 
 
-def get_documentation(file_metadata: tuple) -> None:
+def get_documentation(file_metadata: tuple) -> str:
     """
     Create documentation for objects from the given file (module), if there
     are any.
@@ -123,6 +123,10 @@ def get_documentation(file_metadata: tuple) -> None:
     Arguments:
         file_metadata:
             Returned data from the 'read_file' function from the 'doksit.main'.
+
+    Returns:
+        Updated global variable 'output'. It's needed for successful
+        unittest of this function.
     """
     file_path, classes, functions = file_metadata
     module = file_path.replace("/", ".").rstrip(".py")
@@ -189,6 +193,8 @@ def get_documentation(file_metadata: tuple) -> None:
                         markdown_docstring(function_docstring)
 
                 output += markdowned_docstring + "\n\n"
+
+    return output
 
 
 def main() -> None:
