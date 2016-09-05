@@ -2,7 +2,6 @@ import collections
 import inspect
 import os
 import re
-import sys
 from typing import List, Tuple
 
 from doksit.cli import parser as cli_parser

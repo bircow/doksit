@@ -1,4 +1,3 @@
-import os
 import unittest
 
 from doksit.main import read_file, class_regex, method_regex, function_regex

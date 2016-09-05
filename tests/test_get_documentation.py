@@ -1,7 +1,6 @@
-import inspect
 import unittest
 
-from doksit.main import get_documentation, output, read_file
+from doksit.main import get_documentation, read_file
 
 
 class TestGetDocumentationFunction(unittest.TestCase):
