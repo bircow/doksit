@@ -2,7 +2,8 @@ from typing import List
 
 
 class Foo:
-    """This is a brief description.
+    """
+    This is a brief description.
 
     This is a long description.
 
@@ -23,11 +24,13 @@ class Foo:
     """
 
     def __init__(self, x: str, y: float = 1.0, z: List[int] = []) -> None:
-        """This is a brief description.
+        """
+        This is a brief description.
 
         Arguments:
             x:
-                Description of 'x'.
+                Description of
+                'x'.
             y:
                 Description of 'y'.
             z:
@@ -47,7 +50,8 @@ class Foo:
         """
 
     def method(self) -> bool:
-        """This is a brief description.
+        """
+        This is a brief description.
 
         This is a long description.
 
@@ -59,13 +63,19 @@ class Foo:
         """
 
     def _protected(self) -> list:
-        """This will be ignored."""
+        """
+        This will be ignored.
+        """
 
     def __private(self) -> tuple:
-        """This will be also ignored."""
+        """
+        This will be also ignored.
+        """
 
     def __magic__(self) -> dict:
-        """This will be also ignored."""
+        """
+        This will be also ignored.
+        """
 
 
 class Bar:
@@ -73,7 +83,8 @@ class Bar:
 
 
 def function(n) -> int:
-    """This is a brief description.
+    """
+    This is a brief description.
 
     This is a long description.
 
@@ -86,16 +97,22 @@ def function(n) -> int:
 
     Example:
         This is an example code.
+
+        This part is after line break.
     """
 
 
 def another_function() -> None:
-    """This is a brief description."""
+    """
+    This is a brief description.
+    """
     pass
 
 
 def _hidden_function() -> None:
-    """This will be ignored."""
+    """
+    This will be ignored.
+    """
 
 
 if __name__ == "__main__":

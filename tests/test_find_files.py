@@ -11,9 +11,9 @@ class TestFindFilesFunction(unittest.TestCase):
         to run successfully.
         """
         expected_file_paths = [
-            "package/subpackage/subpackage/module.py",
+            "package/module.py",
             "package/subpackage/module.py",
-            "package/module.py"
+            "package/subpackage/subpackage/module.py",
         ]
 
         find_files("package")
