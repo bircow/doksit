@@ -1,5 +1,3 @@
 # TODO
 
-- [ ] update README.md
-- [ ] add user guide (docs overall)
-- [ ] mention to run doksit in proper place
+- [ ] add links to source file on Github (eg. github.com/.../#L1-L5)
