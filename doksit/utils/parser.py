@@ -33,7 +33,11 @@ def parse_parameters(parameters: OrderedDict) -> dict:
             annotation, default = \
                 parameter_regex.search(to_parse).groups()
 
-            if annotation is not None and annotation.startswith("typing."):
+            if annotation is None:
+                output[parameter] = "{}:".format(parameter)
+                continue
+
+            elif annotation is not None and annotation.startswith("typing."):
                 # Annotation is for example 'typing.List', but this form
                 # user didn't write. He / she wrote eg. 'List[str]', which is
                 # internally in Python 'typing.List<~T>[str]
