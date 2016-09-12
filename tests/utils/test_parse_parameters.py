@@ -31,7 +31,7 @@ def test_parse_parameters_from_method():
     assert output["z"] == "z (List[int], optional, default []):"
 
 
-def test_parse_parametrs_from_function():
+def test_parse_parameters_from_function():
     """
     Sample function 'function' has these paramaters:
 
