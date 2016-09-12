@@ -1,167 +1,235 @@
 import collections
 import inspect
-import unittest
 
 from doksit.utils.parser import markdown_docstring
 
-from package.module import Foo, function, another_function
+from tests.test_data.module import Foo, function, another_function
 
 
-class TestMarkdownDocstringFunction(unittest.TestCase):
+def test_markdown_class_docstring():
+    """
+    Sample class docstring from 'Foo' class:
 
-    def test_markdown_class_docstring(self):
-        """
-        Sample class docstring from 'package.Foo' class.
-        """
-        class_docstring = inspect.getdoc(Foo)
-        markdowed_class_docstring = markdown_docstring(class_docstring)
-
-        expected_output_draft = """
         This is a brief description.
 
         This is a long description.
 
-        **Note:**
+        Note:
             This is a note.
 
-        **Attributes:**
+        Attributes:
+            foo (str):
+                Foo is the attribute.
+            bar (int):
+                Bar is another
+                attribute.
 
-        - foo (str):
-            - Foo is the attribute.
-        - bar (int):
-            - Bar is another
-        attribute.
+        Todo:
+            - one thing
+            - two
+                things
+    """
+    class_docstring = inspect.getdoc(Foo)
+    markdowed_class_docstring = markdown_docstring(class_docstring)
 
-        **Todo:**
+    expected_output_draft = """
+    This is a brief description.
 
-        - [ ] one thing
-        - [ ] two
-        things
-        """
+    This is a long description.
 
-        expected_output = inspect.cleandoc(expected_output_draft)
-        assert expected_output == markdowed_class_docstring
+    **Note:**
+        This is a note.
 
-    def test_markdown_method_docstring(self):
-        """
-        Sample method docstring from the 'package.module.Foo.__init__' method.
-        """
-        # Need to get the method parameters for this method in order to get
-        # markdowned docstring.
+    **Attributes:**
 
-        method_parameters = inspect.signature(Foo.__init__).parameters
-        method_parameters = collections.OrderedDict(method_parameters)
+    - foo (str):
+        - Foo is the attribute.
+    - bar (int):
+        - Bar is another
+    attribute.
 
-        method_docstring = inspect.getdoc(Foo.__init__)
-        markdowned_method_docstring = markdown_docstring(
-            method_docstring, method_parameters)
+    **Todo:**
 
-        expected_output_draft = """
+    - [ ] one thing
+    - [ ] two
+    things
+    """
+
+    expected_output = inspect.cleandoc(expected_output_draft)
+    assert expected_output == markdowed_class_docstring
+
+
+def test_markdown_method_docstring():
+    """
+    Sample method docstring from the 'Foo.__init__' method:
+
         This is a brief description.
 
-        **Arguments:**
+        Arguments:
+            x:
+                Description of
+                'x'.
+            y:
+                Description of 'y'.
+            z:
+                Description of 'z'.
 
-        - x (str):
-            - Description of
-        'x'.
-        - y (float, optional, default 1.0):
-            - Description of 'y'.
-        - z (List[int], optional, default []):
-            - Description of 'z'.
+        Raises:
+            AssertionError:
+                Assertion failed.
+            TypeError:
+                TypeError
+                description.
+            ValueError:
+                1. Invalid argument for
+                    'x'.
+                2. Invalid argument for 'y'.
+                3. Invalid argument for 'z'.
 
-        **Raises:**
+    Note:
+        The 'Foo.__init__' method has parameters which are needed to get for
+        the 'markdown_docstring' function.
+    """
+    method_parameters = inspect.signature(Foo.__init__).parameters
+    method_parameters = collections.OrderedDict(method_parameters)
 
-        - AssertionError:
-            - Assertion failed.
-        - TypeError:
-            - TypeError
-        description.
-        - ValueError:
-            1. Invalid argument for
-        'x'.
-            2. Invalid argument for 'y'.
-            3. Invalid argument for 'z'.
-        """
+    method_docstring = inspect.getdoc(Foo.__init__)
+    markdowned_method_docstring = \
+        markdown_docstring(method_docstring, method_parameters)
 
-        expected_output = inspect.cleandoc(expected_output_draft)
-        assert expected_output == markdowned_method_docstring
+    expected_output_draft = """
+    This is a brief description.
 
-    def test_markdown_another_method_docstring(self):
-        """
-        Sample method docstring from the 'package.module.Foo.method' method.
-        """
-        method_docstring = inspect.getdoc(Foo.method)
-        markdowned_method_docstring = markdown_docstring(method_docstring)
+    **Arguments:**
 
-        expected_output_draft = """
+    - x (str):
+        - Description of
+    'x'.
+    - y (float, optional, default 1.0):
+        - Description of 'y'.
+    - z (List[int], optional, default []):
+        - Description of 'z'.
+
+    **Raises:**
+
+    - AssertionError:
+        - Assertion failed.
+    - TypeError:
+        - TypeError
+    description.
+    - ValueError:
+        1. Invalid argument for
+    'x'.
+        2. Invalid argument for 'y'.
+        3. Invalid argument for 'z'.
+    """
+
+    expected_output = inspect.cleandoc(expected_output_draft)
+    assert expected_output == markdowned_method_docstring
+
+
+def test_markdown_another_method_docstring():
+    """
+    Sample method docstring from the 'Foo.method' method:
+
         This is a brief description.
 
         This is a long description.
 
-        **Warning:**
+        Warning:
             This is a warning.
 
-        **Returns:**
+        Returns:
             True.
-        """
+    """
+    method_docstring = inspect.getdoc(Foo.method)
+    markdowned_method_docstring = markdown_docstring(method_docstring)
 
-        expected_output = inspect.cleandoc(expected_output_draft)
-        assert expected_output == markdowned_method_docstring
+    expected_output_draft = """
+    This is a brief description.
 
-    def test_markdown_function_docstring(self):
-        """
-        Sample function docstring from the 'package.module.function' function.
-        """
-        # Need to get the function parameters for this function in order to get
-        # markdowned docstring.
+    This is a long description.
 
-        function_parameters = inspect.signature(function).parameters
-        function_parameters = collections.OrderedDict(function_parameters)
+    **Warning:**
+        This is a warning.
 
-        function_docstring = inspect.getdoc(function)
-        markdowned_function_docstring = markdown_docstring(
-            function_docstring, function_parameters)
+    **Returns:**
+        True.
+    """
 
-        expected_output_draft = """
+    expected_output = inspect.cleandoc(expected_output_draft)
+    assert expected_output == markdowned_method_docstring
+
+
+def test_markdown_function_docstring():
+    """
+    Sample function docstring from the 'function' function:
+
         This is a brief description.
 
         This is a long description.
 
-        **Arguments:**
+        Arguments:
+            n:
+                Description of 'n'.
 
-        - n (None):
-            - Description of 'n'.
-
-        **Yields:**
+        Yields:
             Integer.
 
         Example:
+            This is an example code.
 
-        ```python
-        This is an example code.
+            This part is after line break.
 
-        This part is after line break.
-        ```
-        """
+    Note:
+        The 'function' function has parameters which are needed to get for the
+        'markdown_docstring' function.
+    """
+    function_parameters = inspect.signature(function).parameters
+    function_parameters = collections.OrderedDict(function_parameters)
 
-        expected_output = inspect.cleandoc(expected_output_draft)
-        assert expected_output == markdowned_function_docstring
+    function_docstring = inspect.getdoc(function)
+    markdowned_function_docstring = \
+        markdown_docstring(function_docstring, function_parameters)
 
-    def test_markdown_another_function_docstring(self):
-        """
-        Sample function docstring from the 'package.module.another_function'
-        function.
-        """
-        function_docstring = inspect.getdoc(another_function)
-        markdowned_function_docstring = markdown_docstring(function_docstring)
+    expected_output_draft = """
+    This is a brief description.
 
-        expected_output_draft = """
+    This is a long description.
+
+    **Arguments:**
+
+    - n:
+        - Description of 'n'.
+
+    **Yields:**
+        Integer.
+
+    Example:
+
+    ```python
+    This is an example code.
+
+    This part is after line break.
+    ```
+    """
+
+    expected_output = inspect.cleandoc(expected_output_draft)
+    assert expected_output == markdowned_function_docstring
+
+
+def test_markdown_another_function_docstring():
+    """
+    Sample function docstring from the 'another_function' function:
+
         This is a brief description.
-        """
+    """
+    function_docstring = inspect.getdoc(another_function)
+    markdowned_function_docstring = markdown_docstring(function_docstring)
 
-        expected_output = inspect.cleandoc(expected_output_draft)
-        assert expected_output == markdowned_function_docstring
+    expected_output_draft = """
+    This is a brief description.
+    """
 
-
-if __name__ == "__main__":
-    unittest.main()
+    expected_output = inspect.cleandoc(expected_output_draft)
+    assert expected_output == markdowned_function_docstring
