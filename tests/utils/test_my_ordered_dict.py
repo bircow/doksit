@@ -1,4 +1,4 @@
-from doksit.utils import MyOrderedDict
+from doksit.utils.data_types import MyOrderedDict
 
 
 def test_get_last_inserted_dict_key():

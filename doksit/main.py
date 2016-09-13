@@ -5,8 +5,8 @@ import re
 from typing import List, Tuple
 
 from doksit.cli import parser as cli_parser
-from doksit.utils import MyOrderedDict
-from doksit.utils import markdown_docstring
+from doksit.utils.data_types import MyOrderedDict
+from doksit.utils.parser import markdown_docstring
 
 file_paths = []
 

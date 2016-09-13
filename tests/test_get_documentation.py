@@ -1,6 +1,6 @@
 import sys
 
-from doksit.main import get_documentation, read_file, output
+from doksit.main import get_documentation, read_file
 
 # IMPORTANT:
 #
