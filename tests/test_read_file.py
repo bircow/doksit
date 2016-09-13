@@ -32,7 +32,7 @@ def test_regex_for_functions(line):
 
 
 def test_read_sample_file_from_sample_package():
-    """    
+    """
     The file is located here in 'test_data/module.py'.
 
     Expected result is:
