@@ -1,7 +1,7 @@
 import collections
 import inspect
 
-from doksit.utils.parser import parse_parameters
+from doksit.utils.parsers import parse_parameters
 
 from tests.test_data.module import Foo, function
 

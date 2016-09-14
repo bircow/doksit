@@ -1,7 +1,7 @@
 import collections
 import inspect
 
-from doksit.utils.parser import markdown_docstring
+from doksit.utils.parsers import markdown_docstring
 
 from tests.test_data.module import Foo, function, another_function
 

@@ -6,7 +6,7 @@ from typing import List, Tuple
 
 from doksit.cli import parser as cli_parser
 from doksit.utils.data_types import MyOrderedDict
-from doksit.utils.parser import markdown_docstring
+from doksit.utils.parsers import markdown_docstring
 
 file_paths = []
 
@@ -73,8 +73,11 @@ def read_file(file_path: str) -> Tuple[str, MyOrderedDict, List[str]]:
         dict with class names and methods and third is list of function names.
 
     Example:
-        ("package.module", MyOrderedDict({"Foo": ["__init__", "method_name"]),
-        ["function_name"])
+        (
+            "package/module.py", 
+            MyOrderedDict([("Foo", ["__init__", "method_name"])]),
+            ["function_name"]
+        )
     """
     absolute_path = os.getcwd() + "/" + file_path
 
