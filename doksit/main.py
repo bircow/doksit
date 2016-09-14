@@ -128,17 +128,27 @@ def get_documentation(file_metadata: tuple) -> str:
         unittest of this function.
     """
     file_path, classes, functions = file_metadata
-    module = file_path.replace("/", ".").rstrip(".py")
+    module_name = file_path.replace("/", ".").rstrip(".py")
 
     if not classes and not functions:
         return
 
     global output
-    output += "## {}\n\n".format(module)
+    output += "## {}\n\n".format(module_name)
+
+    exec("import {} as mdl".format(module_name))
+
+    imported_module = locals()["mdl"]
+    module_docstring = inspect.getdoc(imported_module) or ""
+
+    if module_docstring:
+        markdowned_docstring = markdown_docstring(module_docstring)
+
+        output += markdowned_docstring + "\n\n"
 
     if classes:
         for class_name in classes:
-            exec("from {0} import {1} as cls".format(module, class_name))
+            exec("from {0} import {1} as cls".format(module_name, class_name))
 
             imported_class = locals()["cls"]
             class_docstring = inspect.getdoc(imported_class) or ""
@@ -173,7 +183,8 @@ def get_documentation(file_metadata: tuple) -> str:
 
     if functions:
         for function_name in functions:
-            exec("from {0} import {1} as func".format(module, function_name))
+            exec("from {0} import {1} as func".format(
+                module_name, function_name))
 
             imported_function = locals()["func"]
             function_docstring = inspect.getdoc(imported_function) or ""

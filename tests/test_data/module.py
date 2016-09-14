@@ -1,3 +1,11 @@
+"""
+This is a module docstring, right?
+
+Example:
+    >>> print("Hello World!)
+    Hello World!
+"""
+
 from typing import List
 
 
