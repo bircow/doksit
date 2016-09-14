@@ -228,7 +228,7 @@ def test_markdown_another_function_docstring():
     markdowned_function_docstring = markdown_docstring(function_docstring)
 
     expected_output_draft = """
-    This is a brief description.
+    This is a brief online description.
     """
 
     expected_output = inspect.cleandoc(expected_output_draft)

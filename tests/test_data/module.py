@@ -56,6 +56,7 @@ class Foo:
                 2. Invalid argument for 'y'.
                 3. Invalid argument for 'z'.
         """
+        pass
 
     def method(self) -> bool:
         """
@@ -69,21 +70,25 @@ class Foo:
         Returns:
             True.
         """
+        pass
 
     def _protected(self) -> list:
         """
         This will be ignored.
         """
+        pass
 
     def __private(self) -> tuple:
         """
         This will be also ignored.
         """
+        pass
 
     def __magic__(self) -> dict:
         """
         This will be also ignored.
         """
+        pass
 
 
 class Bar:
@@ -108,12 +113,11 @@ def function(n) -> int:
 
         This part is after line break.
     """
+    pass
 
 
 def another_function() -> None:
-    """
-    This is a brief description.
-    """
+    """This is a brief online description."""
     pass
 
 
@@ -121,7 +125,4 @@ def _hidden_function() -> None:
     """
     This will be ignored.
     """
-
-
-if __name__ == "__main__":
     pass

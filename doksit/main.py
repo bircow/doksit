@@ -74,7 +74,7 @@ def read_file(file_path: str) -> Tuple[str, MyOrderedDict, List[str]]:
 
     Example:
         (
-            "package/module.py", 
+            "package/module.py",
             MyOrderedDict([("Foo", ["__init__", "method_name"])]),
             ["function_name"]
         )
