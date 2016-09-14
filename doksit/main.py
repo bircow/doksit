@@ -143,7 +143,7 @@ def get_documentation(file_metadata: tuple) -> str:
             imported_class = locals()["cls"]
             class_docstring = inspect.getdoc(imported_class) or ""
 
-            output += "### class {0}.{1}\n\n".format(module, class_name)
+            output += "### class {}\n\n".format(class_name)
 
             if class_docstring:
                 markdowned_docstring = markdown_docstring(class_docstring)
@@ -181,7 +181,7 @@ def get_documentation(file_metadata: tuple) -> str:
                 inspect.signature(imported_function).parameters
             function_parameters = collections.OrderedDict(function_parameters)
 
-            output += "### function {0}.{1}\n\n".format(module, function_name)
+            output += "### function {}\n\n".format(function_name)
 
             if function_docstring:
                 if function_parameters:
