@@ -1,4 +1,4 @@
-from doksit.utils.inspector import get_line_numbers
+from doksit.utils.inspectors import get_line_numbers
 
 from tests.test_data.module import Foo, function
 
