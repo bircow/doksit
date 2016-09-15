@@ -2,10 +2,10 @@ import collections
 import inspect
 import os
 import re
-from typing import List, Tuple
 
 from doksit.cli import parser as cli_parser
 from doksit.utils.data_types import MyOrderedDict
+from doksit.utils.inspectors import get_line_numbers
 from doksit.utils.parsers import markdown_docstring
 
 file_paths = []
@@ -57,16 +57,23 @@ method_regex = re.compile("^    def ([\w_]+)\((self|cls)")
 function_regex = re.compile("^def ([\w_]+)")
 
 
-def read_file(file_path: str) -> Tuple[str, MyOrderedDict, List[str]]:
+def read_file(file_path):
     """
-    Get names for classes and methods inside and functions if there are any.
+    Scan the given Python file for its "metadata".
 
-    Unlike Pydoc the Doksit cares about order of objects specified above in the
-    given file + omits magic methods except the '\_\_init\_\_'.
+    By metadata I mean:
+
+    - founded objects (only collect classes, methods and functions with respect
+    to their position in the file)
+    - their location (on which lines is the object defined)
+
+    Note:
+        Protected and prohibited methods / functions will be skipped. The same
+        goes for magic methods except the `__init__`.
 
     Arguments:
-        file_path:
-            Relative file path.
+        file_path (str):
+            Relative file path, eg. `directory_name/file_name.py`
 
     Returns:
         3-tuple, where first item is relative file path, second is ordered
@@ -76,7 +83,7 @@ def read_file(file_path: str) -> Tuple[str, MyOrderedDict, List[str]]:
         (
             "package/module.py",
             MyOrderedDict([("Foo", ["__init__", "method_name"])]),
-            ["function_name"]
+            OrderedDict([("function_name", "#L10-L20")])
         )
     """
     absolute_path = os.getcwd() + "/" + file_path
@@ -89,7 +96,7 @@ def read_file(file_path: str) -> Tuple[str, MyOrderedDict, List[str]]:
 
     for line in file:
         if line.startswith("class "):
-            classes[class_regex.search(line).group(1)] = []
+            classes.update({class_regex.search(line).group(1): []})
 
         if line.lstrip().startswith("def "):
             if method_regex.search(line):
@@ -103,7 +110,7 @@ def read_file(file_path: str) -> Tuple[str, MyOrderedDict, List[str]]:
                 function_name = function_regex.search(line).group(1)
 
                 if not function_name.startswith("_"):
-                    functions.append(function_regex.search(line).group(1))
+                    functions.append(function_name)
 
     return file_path, classes, functions
 
@@ -146,7 +153,6 @@ def get_documentation(file_metadata: tuple) -> str:
 
     if module_docstring:
         markdowned_docstring = markdown_docstring(module_docstring)
-
         output += markdowned_docstring + "\n\n"
 
     if classes:
@@ -155,12 +161,13 @@ def get_documentation(file_metadata: tuple) -> str:
 
             imported_class = locals()["cls"]
             class_docstring = inspect.getdoc(imported_class) or ""
+            class_location = get_line_numbers(imported_class)
 
-            output += "### class {}\n\n".format(class_name)
+            output += "### class {}\n".format(class_name)
+            output += "...{}\n\n".format(class_location)
 
             if class_docstring:
                 markdowned_docstring = markdown_docstring(class_docstring)
-
                 output += markdowned_docstring + "\n\n"
 
             for method_name in classes[class_name]:
@@ -168,11 +175,13 @@ def get_documentation(file_metadata: tuple) -> str:
                 method_docstring = inspect.getdoc(method_object) or ""
                 method_parameters = inspect.signature(method_object).parameters
                 method_parameters = collections.OrderedDict(method_parameters)
+                method_location = get_line_numbers(method_object)
 
                 if method_name == "__init__":
                     method_name = "\_\_init\_\_"
 
-                output += "#### method {}\n\n".format(method_name)
+                output += "#### method {}\n".format(method_name)
+                output += "...{}\n\n".format(method_location)
 
                 if method_docstring:
                     if method_parameters:
@@ -194,8 +203,10 @@ def get_documentation(file_metadata: tuple) -> str:
             function_parameters = \
                 inspect.signature(imported_function).parameters
             function_parameters = collections.OrderedDict(function_parameters)
+            function_location = get_line_numbers(imported_function)
 
-            output += "### function {}\n\n".format(function_name)
+            output += "### function {}\n".format(function_name)
+            output += "...{}\n\n".format(function_location)
 
             if function_docstring:
                 if function_parameters:

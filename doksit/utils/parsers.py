@@ -1,24 +1,27 @@
-from collections import OrderedDict
+import collections
 import re
 
 parameter_regex = re.compile("[\w_]+:?([\w_\[\]\.]+)?=?(.+)?")
 
 
-def parse_parameters(parameters: OrderedDict) -> dict:
+def parse_parameters(parameters):
     """
-    Parse the given parameters (come from a method / function) to readable
-    format.
-
-    This function is used internally by 'markdown_docstring' method from
-    'doksit.utils.parser' for markdowning a 'Arguments' section in a docstring.
+    Parse the given parameters from a method / function to readable format.
 
     Arguments:
-        parameters:
-            Parameters of method / function with annotations and default
-            values if any.
+        parameters (OrderedDict):
+            Method / function paramaters, which may look like `OrderedDict([
+            ('parameter_name', <Parameter "parameter_name:int=1")])`
+
+    If a user doesn't use annotations (doesn't want to or has Python 2.7, in
+    which it's not possible), then is expected that he / she writes explicitly
+    data types and default values for parameters in the `Arguments:` section
+    himself / herself and thus there is nothing to parse.
 
     Returns:
-        Dictionary of parameters names with parsed string for documentation.
+        False if the user doesn't use the annotations or dictionary with the
+        parameter names and their parsed variant, which will be used in the
+        'markdown_docstring' function.
 
     Example:
         {"foo": "foo (str):", "bar": "bar (int, optional, default 0):"}
@@ -34,13 +37,12 @@ def parse_parameters(parameters: OrderedDict) -> dict:
                 parameter_regex.search(to_parse).groups()
 
             if annotation is None:
-                output[parameter] = "{}:".format(parameter)
-                continue
+                return False
 
-            elif annotation is not None and annotation.startswith("typing."):
-                # Annotation is for example 'typing.List', but this form
-                # user didn't write. He / she wrote eg. 'List[str]', which is
-                # internally in Python 'typing.List<~T>[str]
+            if annotation.startswith("typing."):
+                # Annotation is for example `typing.List`, but this form
+                # user didn't write. He / she wrote eg. `List[str]`, which is
+                # internally in Python `typing.List<~T>[str]`
 
                 bad_annotation = str(parameters[parameter].annotation)
                 annotation = bad_annotation.lstrip("typing.").replace(
@@ -60,24 +62,19 @@ def parse_parameters(parameters: OrderedDict) -> dict:
 argument_regex = re.compile("    ([\w_\*]+):")
 
 
-def markdown_docstring(docstring: str,
-                       parameters: OrderedDict = OrderedDict()) \
-        -> str:
+def markdown_docstring(docstring, parameters=collections.OrderedDict()):
     """
     Read the given docstring and convert it to Markdown.
 
-    This function is used internally by 'get_documentation' from the
-    'doksit.main'.
-
     Arguments:
-        docstring:
-            Docstring of class / method / function.
-        parameters:
-            Parameters of method / function which will be passed to the
-            'parse_parameters' function from the 'doksit.utils.parser'.
+        docstring (str):
+            Module / class / method / function docstring for markdowning.
+        parameters (OrderedDict, optional, default {}):
+            Method / function parameters which will be internally passed to the
+            'parse_parameters' function.
 
     Returns:
-        Docstring in Markdown format.
+        Docstring in the Markdown format.
 
     Example:
         This is a brif description of object.
@@ -88,7 +85,7 @@ def markdown_docstring(docstring: str,
 
         - foo (str):
             - Foo description.
-        - bar (int, optional, 1):
+        - bar (int, optional, default 1):
             - Bar description.
 
         **Returns:**
@@ -145,14 +142,18 @@ def markdown_docstring(docstring: str,
                 elif argument.startswith("    "):
                     lines += 1
 
-                    argument_name = argument_regex.search(argument).group(1)
+                    if parsed_parameters:
+                        argument_name = argument_regex.search(argument).group(1)
 
-                    if argument_name.startswith("*"):  # Eg. *args or **kwargs
-                        argument_name = argument_name.lstrip("*")
+                        if argument_name.startswith("*"):  # *args or **kwargs
+                            argument_name = argument_name.lstrip("*")
 
-                    parsed_argument = parsed_parameters[argument_name]
-                    splited_docstring[line_number + lines] = \
-                        "- " + parsed_argument
+                        parsed_argument = parsed_parameters[argument_name]
+                        splited_docstring[line_number + lines] = \
+                            "- " + parsed_argument
+                    else:
+                        splited_docstring[line_number + lines] = \
+                            "- " + argument.lstrip(" ")
 
                     # Next line should be an argument description.
 

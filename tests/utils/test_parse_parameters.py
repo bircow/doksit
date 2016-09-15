@@ -37,13 +37,12 @@ def test_parse_parameters_from_function():
 
     - n
 
-    and expected output is:
-
-    {"n": "n:"}
+    but with no annotations. Therefore the function 'parse_paramaters' should
+    return False value.
     """
     function_parameters = inspect.signature(function).parameters
     function_parameters = collections.OrderedDict(function_parameters)
 
     output = parse_parameters(function_parameters)
 
-    assert output["n"] == "n:"
+    assert not output
