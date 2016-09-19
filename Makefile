@@ -1,6 +1,7 @@
 clean:
 	find . -type d -name "__pycache__" -exec rm -rf {} +;
 	find . -type f -name "*~" -delete
+	rm -rf .cache/
 
 install:
 	pip install -e .
