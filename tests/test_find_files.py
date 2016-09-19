@@ -1,9 +1,9 @@
-from doksit.main import find_files, file_paths
+from doksit.api import find_files, file_paths
 
 
 def test_find_files_in_the_given_directory():
     """
-    The 'find_files' requires external (global) variable 'file_paths'
+    The 'find_files' function requires external (global) variable 'file_paths'
     to run successfully.
     """
     expected_file_paths = [
