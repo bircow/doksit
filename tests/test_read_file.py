@@ -1,6 +1,6 @@
 import pytest
 
-from doksit.main import read_file, class_regex, method_regex, function_regex
+from doksit.api import class_regex, method_regex, function_regex, read_file
 
 
 @pytest.mark.parametrize("line", [
@@ -27,13 +27,12 @@ def test_regex_for_methods(line):
     "def function_name(arg1, arg2, ...):"
 ])
 def test_regex_for_functions(line):
-    assert function_regex.search(line).group(1) \
-        == "function_name"
+    assert function_regex.search(line).group(1) == "function_name"
 
 
-def test_read_sample_file_from_sample_package():
+def test_read_sample_file():
     """
-    The file is located here in 'test_data/module.py'.
+    The file is located here in the 'test_data/module.py'.
 
     Expected result is:
 
@@ -48,5 +47,5 @@ def test_read_sample_file_from_sample_package():
     assert result[0] == "test_data/module.py"
     assert list(result[1].keys()) == ["Foo", "Bar"]
     assert result[1]["Foo"] == ["__init__", "method"]
-    assert not result[1]["Bar"]
+    assert result[1]["Bar"] == []
     assert result[2] == ["function", "another_function"]
