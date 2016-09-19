@@ -1,9 +1,17 @@
+"""
+This module contains all the necessary functions for running the following
+command:
+
+    $ doksit api PACKAGE_DIRECTORY
+"""
+
 import collections
 import inspect
 import os
 import re
 
-from doksit.cli import parser as cli_parser
+from typing import List
+
 from doksit.utils.data_types import MyOrderedDict
 from doksit.utils.inspectors import get_line_numbers
 from doksit.utils.parsers import markdown_docstring
@@ -11,22 +19,24 @@ from doksit.utils.parsers import markdown_docstring
 file_paths = []
 
 
-def find_files(directory_path: str) -> None:
+def find_files(directory_path: str) -> List[str]:
     """
-    Get ordered relative paths for all python files in the given directory and
-    subdirectories.
+    Browse the given directory and find all python files (get their relative
+    paths).
 
-    These relative paths will be inserted into global variable 'file_paths'.
-
-    Example:
-        ["package/module.py", "package/subpackage/module.py"]
-
-    Files in '\_\_pycache\_\_' directories are excluded. The same goes for
-    '\_\_init__.py' and '\_\_main\_\_.py' files.
+    Note:
+        Files in the `__pycache__` directories are excluded. The same goes for
+        the `__init__.py` and `__main__.py` files.
 
     Arguments:
         directory_path:
-            Relative directory path.
+            Relative path to the Python package directory.
+
+    Returns:
+        List of found Python files (their relative paths).
+
+    Example:
+        ["package/module.py", "package/subpackage/module.py"]
     """
     scanned_directory = os.scandir(directory_path)
 
@@ -51,39 +61,37 @@ def find_files(directory_path: str) -> None:
     for subdirectory in sorted(founded_subdirectories):
         find_files(subdirectory)
 
+    return file_paths
+
 
 class_regex = re.compile("^class (\w+):?|\(")
 method_regex = re.compile("^    def ([\w_]+)\((self|cls)")
 function_regex = re.compile("^def ([\w_]+)")
 
 
-def read_file(file_path):
+def read_file(file_path: str):
     """
-    Scan the given Python file for its "metadata".
-
-    By metadata I mean:
-
-    - founded objects (only collect classes, methods and functions with respect
-    to their position in the file)
-    - their location (on which lines is the object defined)
+    Find in the given file classes, their methods and functions exactly in the
+    order as they are defined.
 
     Note:
-        Protected and prohibited methods / functions will be skipped. The same
+        Protected / prohibited methods / functions will be skipped. The same
         goes for magic methods except the `__init__`.
 
     Arguments:
-        file_path (str):
-            Relative file path, eg. `directory_name/file_name.py`
+        file_path:
+            Relative path to a Python file, eg. `directory/file.py`
 
     Returns:
-        3-tuple, where first item is relative file path, second is ordered
-        dict with class names and methods and third is list of function names.
+        3-tuple, where first item is the relative file path, second is ordered
+        dict with class names and their methods and third is list of function
+        names.
 
     Example:
         (
             "package/module.py",
             MyOrderedDict([("Foo", ["__init__", "method_name"])]),
-            OrderedDict([("function_name", "#L10-L20")])
+            ["function_name"]
         )
     """
     absolute_path = os.getcwd() + "/" + file_path
@@ -96,7 +104,7 @@ def read_file(file_path):
 
     for line in file:
         if line.startswith("class "):
-            classes.update({class_regex.search(line).group(1): []})
+            classes[class_regex.search(line).group(1)] = []  # No methods yet
 
         if line.lstrip().startswith("def "):
             if method_regex.search(line):
@@ -115,60 +123,70 @@ def read_file(file_path):
     return file_path, classes, functions
 
 
-output = "# API Reference\n\n"
-
-
-def get_documentation(file_metadata: tuple) -> str:
+def get_documentation(file_metadata: tuple):
     """
-    Create documentation for objects from the given file (module), if there
-    are any.
+    Create markdowned documentation for the given Python file.
 
-    In other words, if the file is empty then documentation won't be created
-    for it.
-
-    The documentation will be inserted into global variable 'output' which
-    contains entire documentation for the given package.
+    If the file doesn't have any defined classes or functions, then no
+    documentation will be created.
 
     Arguments:
         file_metadata:
-            Returned data from the 'read_file' function from the 'doksit.main'.
+            Returned data from the 'doksit.api.read_file' function.
 
     Returns:
-        Updated global variable 'output'. It's needed for successful
-        unittest of this function.
+        The markdowned documentation for the given file.
+
+    Example: (markdown)
+        ## package.module
+
+        This is a markdowned module docstring.
+
+        ### class class_name
+
+        This is a markdowned class docstring.
+
+        #### method method_name
+
+        This is a markdowned method docstring.
+
+        ### function function_name
+
+        This is a markdowned function docstring.
     """
     file_path, classes, functions = file_metadata
-    module_name = file_path.replace("/", ".").rstrip(".py")
 
     if not classes and not functions:
         return
 
-    global output
-    output += "## {}\n\n".format(module_name)
+    module_path = file_path.replace("/", ".").rstrip(".py")
+    documentation = "## {module_path}\n\n".format(module_path=module_path)
 
-    exec("import {} as mdl".format(module_name))
+    exec("import {module_path} as mdl".format(module_path=module_path))
 
     imported_module = locals()["mdl"]
     module_docstring = inspect.getdoc(imported_module) or ""
 
     if module_docstring:
         markdowned_docstring = markdown_docstring(module_docstring)
-        output += markdowned_docstring + "\n\n"
+        documentation += markdowned_docstring + "\n\n"
 
     if classes:
         for class_name in classes:
-            exec("from {0} import {1} as cls".format(module_name, class_name))
+            exec("from {module_path} import {class_name} as cls".format(
+                module_path=module_path, class_name=class_name))
 
             imported_class = locals()["cls"]
             class_docstring = inspect.getdoc(imported_class) or ""
             class_location = get_line_numbers(imported_class)
 
-            output += "### class {}\n".format(class_name)
-            output += "...{}\n\n".format(class_location)
+            documentation += "### class {class_name}\n".format(
+                class_name=class_name)
+            documentation += "...{}\n\n".format(class_location)
 
             if class_docstring:
                 markdowned_docstring = markdown_docstring(class_docstring)
-                output += markdowned_docstring + "\n\n"
+                documentation += markdowned_docstring + "\n\n"
 
             for method_name in classes[class_name]:
                 method_object = getattr(imported_class, method_name)
@@ -180,8 +198,9 @@ def get_documentation(file_metadata: tuple) -> str:
                 if method_name == "__init__":
                     method_name = "\_\_init\_\_"
 
-                output += "#### method {}\n".format(method_name)
-                output += "...{}\n\n".format(method_location)
+                documentation += "#### method {method_name}\n".format(
+                    method_name=method_name)
+                documentation += "...{}\n\n".format(method_location)
 
                 if method_docstring:
                     if method_parameters:
@@ -191,12 +210,12 @@ def get_documentation(file_metadata: tuple) -> str:
                         markdowned_docstring = markdown_docstring(
                             method_docstring)
 
-                    output += markdowned_docstring + "\n\n"
+                    documentation += markdowned_docstring + "\n\n"
 
     if functions:
         for function_name in functions:
-            exec("from {0} import {1} as func".format(
-                module_name, function_name))
+            exec("from {module_path} import {function_name} as func".format(
+                module_path=module_path, function_name=function_name))
 
             imported_function = locals()["func"]
             function_docstring = inspect.getdoc(imported_function) or ""
@@ -205,8 +224,9 @@ def get_documentation(file_metadata: tuple) -> str:
             function_parameters = collections.OrderedDict(function_parameters)
             function_location = get_line_numbers(imported_function)
 
-            output += "### function {}\n".format(function_name)
-            output += "...{}\n\n".format(function_location)
+            documentation += "### function {function_name}\n".format(
+                function_name=function_name)
+            documentation += "...{}\n\n".format(function_location)
 
             if function_docstring:
                 if function_parameters:
@@ -216,20 +236,6 @@ def get_documentation(file_metadata: tuple) -> str:
                     markdowned_docstring = \
                         markdown_docstring(function_docstring)
 
-                output += markdowned_docstring + "\n\n"
+                documentation += markdowned_docstring + "\n\n"
 
-    return output
-
-
-def main() -> None:
-    """
-    Create documentation for the given Python package and print it.
-    """
-    package = cli_parser.parse_args()
-
-    find_files(package.directory)
-
-    for file in file_paths:
-        get_documentation(read_file(file))
-
-    print(output[:-2])  # Last line is '\n\n'.
+    return documentation
