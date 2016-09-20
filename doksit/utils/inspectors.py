@@ -1,13 +1,33 @@
 import inspect
+import subprocess
+import re
 
 from typing import Any
+
+url_regex = re.compile('origin\t([\S]+) ')
 
 
 def get_repository_link():
     """
-    Get absolute URL path.
+    Get absolute URL path to a Github repository with prepared suffix
+    `/blob/master/`.
+
+    Returns:
+        The absolute URL path or None if Git is not used.
+
+    Example:
+        https://github.com/nait-aul/doksit/blob/master/
     """
-    pass
+    try:
+        git_output = subprocess.check_output(
+            ["git", "remote", "-v"], universal_newlines=True)
+
+    except subprocess.CalledProcessError:
+        return
+
+    repository_link = url_regex.search(git_output).group(1)
+
+    return repository_link + "/blob/master/"
 
 
 def get_line_numbers(object: Any):
