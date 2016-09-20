@@ -69,6 +69,9 @@ class Foo:
 
         Returns:
             True.
+
+        Example: (markdown)
+            # Heading
         """
         pass
 

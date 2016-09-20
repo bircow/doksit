@@ -4,24 +4,24 @@ import re
 parameter_regex = re.compile("[\w_]+:?([\w_\[\]\.]+)?=?(.+)?")
 
 
-def parse_parameters(parameters):
+def parse_parameters(parameters: collections.OrderedDict):
     """
-    Parse the given parameters from a method / function to readable format.
+    Parse the given parameters from a method / function to human readable
+    format.
 
     Arguments:
-        parameters (OrderedDict):
-            Method / function paramaters, which may look like `OrderedDict([
-            ('parameter_name', <Parameter "parameter_name:int=1")])`
+        parameters:
+            Returned value from the `inspect.signature(object).parameters`
+            converted to `collections.OrderedDict`, which may look like
+            `OrderedDict([('foo', <Parameter "foo:int=1")])`
 
-    If a user doesn't use annotations (doesn't want to or has Python 2.7, in
-    which it's not possible), then is expected that he / she writes explicitly
-    data types and default values for parameters in the `Arguments:` section
-    himself / herself and thus there is nothing to parse.
+    If a user doesn't use annotations, then is expected that he / she writes
+    explicitly data types and default values for parameters in the `Arguments:`
+    section himself / herself and thus there is nothing to parse.
 
     Returns:
         False if the user doesn't use the annotations or dictionary with the
-        parameter names and their parsed variant, which will be used in the
-        'markdown_docstring' function.
+        parameter names and their parsed variant.
 
     Example:
         {"foo": "foo (str):", "bar": "bar (int, optional, default 0):"}
@@ -48,36 +48,40 @@ def parse_parameters(parameters):
                 annotation = bad_annotation.lstrip("typing.").replace(
                     "<~T>", "")
 
-            output[parameter] = "{0} ({1}".format(parameter, annotation)
+            output[parameter] = "{parameter} ({annotation}".format(
+                parameter=parameter, annotation=annotation)
 
             if default:
                 output[parameter] = output[parameter] + ", optional" \
-                    ", default {}".format(default)
+                    ", default {default_value}".format(
+                        default_value=default)
 
             output[parameter] = output[parameter] + "):"
 
     return output
 
 
-argument_regex = re.compile("    ([\w_\*]+):")
+argument_regex = re.compile("^    ([\w_\*]+)")
+language_regex = re.compile("Example: \((\w+)\)")
 
 
-def markdown_docstring(docstring, parameters=collections.OrderedDict()):
+def markdown_docstring(docstring: str,
+                       parameters: collections.OrderedDict() = {}):
     """
-    Read the given docstring and convert it to Markdown.
+    Read the given docstring and convert it to Markdown format.
 
     Arguments:
-        docstring (str):
+        docstring:
             Module / class / method / function docstring for markdowning.
-        parameters (OrderedDict, optional, default {}):
+        parameters:
             Method / function parameters which will be internally passed to the
-            'parse_parameters' function.
+            'parse_parameters' function for further parsing.
 
     Returns:
         Docstring in the Markdown format.
 
     Example:
-        This is a brif description of object.
+        This is a brief object description.
 
         This is a long paragraph.
 
@@ -114,17 +118,26 @@ def markdown_docstring(docstring, parameters=collections.OrderedDict()):
                 - bar (int, optional, default 10):
                     - Argument description
                 over two lines.
+
+            The information about data types and default values will be
+            get from the 'doksit.utils.parsers.parse_parameters'
+            function.
+
+            If a user defined itself data types and default values like:
+
+                bar (int, optional, default 10)
+
+            then there is no need for parsing.
             """
             splited_docstring[line_number] = "**Arguments:**\n"
 
-            arguments = splited_docstring[(line_number + 1):]
+            arguments_section = splited_docstring[(line_number + 1):]
             lines = 0
             is_first_line_description = False
-
             parsed_parameters = parse_parameters(parameters)
 
-            for argument in arguments:
-                if argument == "":  # End of 'Arguments' section.
+            for argument in arguments_section:
+                if argument == "":  # End of the 'Arguments' section.
                     break
 
                 elif argument.startswith("        "):
@@ -142,8 +155,9 @@ def markdown_docstring(docstring, parameters=collections.OrderedDict()):
                 elif argument.startswith("    "):
                     lines += 1
 
-                    if parsed_parameters:
-                        argument_name = argument_regex.search(argument).group(1)
+                    if parsed_parameters:  # User uses type hints.
+                        argument_name = \
+                            argument_regex.search(argument).group(1)
 
                         if argument_name.startswith("*"):  # *args or **kwargs
                             argument_name = argument_name.lstrip("*")
@@ -182,12 +196,12 @@ def markdown_docstring(docstring, parameters=collections.OrderedDict()):
             """
             splited_docstring[line_number] = "**Attributes:**\n"
 
-            attributes = splited_docstring[(line_number + 1):]
+            attributes_section = splited_docstring[(line_number + 1):]
             lines = 0
             is_first_line_description = False
 
-            for attribute in attributes:
-                if attribute == "":  # End of 'Attributes' section.
+            for attribute in attributes_section:
+                if attribute == "":  # End of the 'Attributes' section.
                     break
 
                 elif attribute.startswith("        "):
@@ -239,16 +253,41 @@ def markdown_docstring(docstring, parameters=collections.OrderedDict()):
                 class Foo:
                     pass
                 ```
+
+            User may also define different language, like:
+
+                Example: (markdown)
+                Example: (bash)
+
+            then it will be automatically rewritten to:
+
+                Example:
+
+                ```markdown
+                ...
+
+            or
+
+                ```bash
             """
-            codes = splited_docstring[(line_number + 1):]
+            example_line = splited_docstring[line_number]
+
+            if language_regex.search(example_line):
+                language = language_regex.search(example_line).group(1)
+
+                splited_docstring[line_number] = "Example:"
+            else:
+                language = "python"
+
+            example_section = splited_docstring[(line_number + 1):]
             lines = 0
 
-            for code in codes:
+            for code in example_section:
                 if code == "":
                     # Check if it's truly end of the 'Example' section or
                     # just line break in the codes.
 
-                    if codes[lines + 1].startswith("    "):
+                    if example_section[lines + 1].startswith("    "):
                         lines += 1
                     else:
                         break
@@ -261,7 +300,9 @@ def markdown_docstring(docstring, parameters=collections.OrderedDict()):
                     lines += 1
                     splited_docstring[line_number + lines] = code.lstrip(" ")
 
-            splited_docstring.insert((line_number + 1), "\n```python")
+            splited_docstring.insert(
+                (line_number + 1), "\n```{language}".format(
+                    language=language))
             splited_docstring.insert((line_number + 1 + lines + 1), "```")
 
         elif line.startswith("Note:"):
@@ -298,11 +339,11 @@ def markdown_docstring(docstring, parameters=collections.OrderedDict()):
             """
             splited_docstring[line_number] = "**Raises:**\n"
 
-            errors = splited_docstring[(line_number + 1):]
+            raises_section = splited_docstring[(line_number + 1):]
             lines = 0
             is_first_line_description = False
 
-            for error in errors:
+            for error in raises_section:
                 if error == "":  # End of 'Raises' section.
                     break
 
@@ -313,13 +354,14 @@ def markdown_docstring(docstring, parameters=collections.OrderedDict()):
                 elif error.startswith("        "):
                     lines += 1
 
-                    # May be ordered (numbered) error description or not.
+                    # Check if it's ordered (numbered) error description or
+                    # not.
 
                     try:
                         int(error.lstrip(" ")[0])
-
                         splited_docstring[line_number + lines] = \
                             "    " + error.lstrip(" ")
+
                     except ValueError:
                         if is_first_line_description:
                             splited_docstring[line_number + lines] = \
@@ -361,22 +403,22 @@ def markdown_docstring(docstring, parameters=collections.OrderedDict()):
             """
             splited_docstring[line_number] = "**Todo:**\n"
 
-            todo_list = splited_docstring[(line_number + 1):]
+            todo_section = splited_docstring[(line_number + 1):]
             lines = 0
 
-            for todo in todo_list:
+            for todo in todo_section:
                 if todo == "":  # End of 'Todo' section
                     break
-
-                elif todo.startswith("    -"):
-                    lines += 1
-                    splited_docstring[line_number + lines] = \
-                        todo.replace("    -", "- [ ]")
 
                 elif todo.startswith("        "):
                     lines += 1
                     splited_docstring[line_number + lines] = \
                         todo.lstrip(" ")
+
+                elif todo.startswith("    -"):
+                    lines += 1
+                    splited_docstring[line_number + lines] = \
+                        todo.replace("    -", "- [ ]")
 
         elif line.startswith("Yields:"):
             splited_docstring[line_number] = "**Yields:**"

@@ -162,6 +162,9 @@ def test_markdown_another_method_docstring():
 
         Returns:
             True.
+
+        Example: (markdown)
+            # Heading.
     """
     method_docstring = inspect.getdoc(Foo.method)
     markdowned_method_docstring = markdown_docstring(method_docstring)
@@ -176,6 +179,12 @@ def test_markdown_another_method_docstring():
 
     **Returns:**
         True.
+
+    Example:
+
+    ```markdown
+    # Heading
+    ```
     """
 
     expected_output = inspect.cleandoc(expected_output_draft)
