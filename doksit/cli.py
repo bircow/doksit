@@ -35,5 +35,5 @@ def api(package_directory: str):
     # Remove 2 blank lines at the end of last item in the 'api_documentation'.
 
     api_documentation[-1] = api_documentation[-1][:-2]
-    
+
     click.echo_via_pager("\n".join(api_documentation))
