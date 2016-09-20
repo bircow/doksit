@@ -3,7 +3,9 @@ import inspect
 
 import pytest
 
-from doksit.utils.parsers import argument_regex, markdown_docstring
+from doksit.utils.parsers import (
+    argument_regex, language_regex, markdown_docstring
+)
 
 from tests.test_data.module import Foo, function, another_function
 
@@ -15,6 +17,14 @@ from tests.test_data.module import Foo, function, another_function
 ])
 def test_argument_regex_for_the_arguments_section(line):
     assert argument_regex.search(line).group(1) == "foo"
+
+
+@pytest.mark.parametrize("line", [
+    "Example: (markdown)",
+    "Example: (bash)"
+])
+def test_programming_language_regex_for_the_example_section(line):
+    assert language_regex.search(line).group(1) in ["markdown", "bash"]
 
 
 def test_markdown_class_docstring():
