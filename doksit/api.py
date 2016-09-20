@@ -13,7 +13,7 @@ import re
 from typing import List
 
 from doksit.utils.data_types import MyOrderedDict
-from doksit.utils.inspectors import get_line_numbers
+from doksit.utils.inspectors import get_line_numbers, get_repository_link
 from doksit.utils.parsers import markdown_docstring
 
 file_paths = []
@@ -143,14 +143,17 @@ def get_documentation(file_metadata: tuple):
         This is a markdowned module docstring.
 
         ### class class_name
+        ([source](absolute_url_path_to_file_and_higlighted_code_block))
 
         This is a markdowned class docstring.
 
         #### method method_name
+        ([source](...))
 
         This is a markdowned method docstring.
 
         ### function function_name
+        ([source](...))
 
         This is a markdowned function docstring.
     """
@@ -161,6 +164,12 @@ def get_documentation(file_metadata: tuple):
 
     module_path = file_path.replace("/", ".").rstrip(".py")
     documentation = "## {module_path}\n\n".format(module_path=module_path)
+
+    repository_url = get_repository_link()
+
+    if repository_url is not None:
+        repository_url += file_path
+        source_url = "([source]({url}))\n\n"  # Will be used multiple times.
 
     exec("import {module_path} as mdl".format(module_path=module_path))
 
@@ -178,11 +187,16 @@ def get_documentation(file_metadata: tuple):
 
             imported_class = locals()["cls"]
             class_docstring = inspect.getdoc(imported_class) or ""
-            class_location = get_line_numbers(imported_class)
 
             documentation += "### class {class_name}\n".format(
                 class_name=class_name)
-            documentation += "...{}\n\n".format(class_location)
+
+            if repository_url is not None:
+                link_to_class = repository_url + get_line_numbers(
+                    imported_class)
+                documentation += source_url.format(url=link_to_class)
+            else:
+                documentation += "\n"
 
             if class_docstring:
                 markdowned_docstring = markdown_docstring(class_docstring)
@@ -193,14 +207,19 @@ def get_documentation(file_metadata: tuple):
                 method_docstring = inspect.getdoc(method_object) or ""
                 method_parameters = inspect.signature(method_object).parameters
                 method_parameters = collections.OrderedDict(method_parameters)
-                method_location = get_line_numbers(method_object)
 
                 if method_name == "__init__":
                     method_name = "\_\_init\_\_"
 
                 documentation += "#### method {method_name}\n".format(
                     method_name=method_name)
-                documentation += "...{}\n\n".format(method_location)
+
+                if repository_url is not None:
+                    link_to_method = repository_url + get_line_numbers(
+                        method_object)
+                    documentation += source_url.format(url=link_to_method)
+                else:
+                    documentation += "\n"
 
                 if method_docstring:
                     if method_parameters:
@@ -222,11 +241,16 @@ def get_documentation(file_metadata: tuple):
             function_parameters = \
                 inspect.signature(imported_function).parameters
             function_parameters = collections.OrderedDict(function_parameters)
-            function_location = get_line_numbers(imported_function)
 
             documentation += "### function {function_name}\n".format(
                 function_name=function_name)
-            documentation += "...{}\n\n".format(function_location)
+
+            if repository_url is not None:
+                link_to_function = repository_url + get_line_numbers(
+                    imported_function)
+                documentation += source_url.format(url=link_to_function)
+            else:
+                documentation += "\n"
 
             if function_docstring:
                 if function_parameters:
