@@ -1,14 +1,25 @@
 import collections
 import inspect
 
-from doksit.utils.parsers import markdown_docstring
+import pytest
+
+from doksit.utils.parsers import argument_regex, markdown_docstring
 
 from tests.test_data.module import Foo, function, another_function
 
 
+@pytest.mark.parametrize("line", [
+    "    foo:",
+    "    foo (str):",
+    "    foo (str, optional, default 'Foo')"
+])
+def test_argument_regex_for_the_arguments_section(line):
+    assert argument_regex.search(line).group(1) == "foo"
+
+
 def test_markdown_class_docstring():
     """
-    Sample class docstring from 'Foo' class:
+    Sample class docstring from the 'Foo' class:
 
         This is a brief description.
 
