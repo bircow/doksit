@@ -1,3 +1,7 @@
+"""
+Here are defined command line interfaces (CLI).
+"""
+
 import click
 
 from doksit.api import find_files, get_documentation, read_file
@@ -5,6 +9,9 @@ from doksit.api import find_files, get_documentation, read_file
 
 @click.group()
 def cli():
+    """
+    This function only initialize `doksit` CLI.
+    """
     pass
 
 
@@ -22,9 +29,9 @@ def api(package_directory: str):
         package_dir:
             Name of the Python package (relative path).
     """
-    file_paths = find_files(package_directory)
-
     api_documentation = ["# API Reference\n"]
+
+    file_paths = find_files(package_directory)
 
     for file in file_paths:
         file_documentation = get_documentation(read_file(file))
