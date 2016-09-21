@@ -163,7 +163,7 @@ def get_documentation(file_metadata: tuple):
         return
 
     module_path = file_path.replace("/", ".").rstrip(".py")
-    documentation = "## {module_path}\n\n".format(module_path=module_path)
+    documentation = "## {module_path}\n\n".format(**locals())
 
     repository_url = get_repository_link()
 
@@ -171,7 +171,7 @@ def get_documentation(file_metadata: tuple):
         repository_url += file_path
         source_url = "([source]({url}))\n\n"  # Will be used multiple times.
 
-    exec("import {module_path} as mdl".format(module_path=module_path))
+    exec("import {module_path} as mdl".format(**locals()))
 
     imported_module = locals()["mdl"]
     module_docstring = inspect.getdoc(imported_module) or ""
@@ -183,13 +183,12 @@ def get_documentation(file_metadata: tuple):
     if classes:
         for class_name in classes:
             exec("from {module_path} import {class_name} as cls".format(
-                module_path=module_path, class_name=class_name))
+                **locals()))
 
             imported_class = locals()["cls"]
             class_docstring = inspect.getdoc(imported_class) or ""
 
-            documentation += "### class {class_name}\n".format(
-                class_name=class_name)
+            documentation += "### class {class_name}\n".format(**locals())
 
             if repository_url is not None:
                 link_to_class = repository_url + get_line_numbers(
@@ -212,7 +211,7 @@ def get_documentation(file_metadata: tuple):
                     method_name = "\_\_init\_\_"
 
                 documentation += "#### method {method_name}\n".format(
-                    method_name=method_name)
+                    **locals())
 
                 if repository_url is not None:
                     link_to_method = repository_url + get_line_numbers(
@@ -234,7 +233,7 @@ def get_documentation(file_metadata: tuple):
     if functions:
         for function_name in functions:
             exec("from {module_path} import {function_name} as func".format(
-                module_path=module_path, function_name=function_name))
+                **locals()))
 
             imported_function = locals()["func"]
             function_docstring = inspect.getdoc(imported_function) or ""
@@ -243,7 +242,7 @@ def get_documentation(file_metadata: tuple):
             function_parameters = collections.OrderedDict(function_parameters)
 
             documentation += "### function {function_name}\n".format(
-                function_name=function_name)
+                **locals())
 
             if repository_url is not None:
                 link_to_function = repository_url + get_line_numbers(

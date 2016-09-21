@@ -60,5 +60,4 @@ def get_line_numbers(object: Any):
     # Note: Without '- 1' for the 'ending_line' it would include blank line
     # after the object definition.
 
-    return "#L{starting_line}-L{ending_line}".format(
-        starting_line=starting_line, ending_line=ending_line)
+    return "#L{starting_line}-L{ending_line}".format(**locals())

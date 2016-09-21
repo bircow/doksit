@@ -33,7 +33,7 @@ def parse_parameters(parameters: collections.OrderedDict):
             continue
         else:
             to_parse = str(parameters[parameter])
-            annotation, default = \
+            annotation, default_value = \
                 parameter_regex.search(to_parse).groups()
 
             if annotation is None:
@@ -48,13 +48,11 @@ def parse_parameters(parameters: collections.OrderedDict):
                 annotation = bad_annotation.lstrip("typing.").replace(
                     "<~T>", "")
 
-            output[parameter] = "{parameter} ({annotation}".format(
-                parameter=parameter, annotation=annotation)
+            output[parameter] = "{parameter} ({annotation}".format(**locals())
 
-            if default:
+            if default_value:
                 output[parameter] = output[parameter] + ", optional" \
-                    ", default {default_value}".format(
-                        default_value=default)
+                    ", default {default_value}".format(**locals())
 
             output[parameter] = output[parameter] + "):"
 
@@ -301,8 +299,7 @@ def markdown_docstring(docstring: str,
                     splited_docstring[line_number + lines] = code.lstrip(" ")
 
             splited_docstring.insert(
-                (line_number + 1), "\n```{language}".format(
-                    language=language))
+                (line_number + 1), "\n```{language}".format(**locals()))
             splited_docstring.insert((line_number + 1 + lines + 1), "```")
 
         elif line.startswith("Note:"):
