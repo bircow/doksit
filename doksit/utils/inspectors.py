@@ -1,10 +1,14 @@
+"""
+Here are defined helping functions for getting particular information.
+"""
+
 import inspect
 import subprocess
 import re
 
 from typing import Any
 
-url_regex = re.compile('origin\t([\S]+) ')
+URL_REGEX = re.compile(r'origin\t([\S]+) ')
 
 
 def get_repository_link():
@@ -25,17 +29,17 @@ def get_repository_link():
     except subprocess.CalledProcessError:
         return
 
-    repository_link = url_regex.search(git_output).group(1)
+    repository_link = URL_REGEX.search(git_output).group(1)
 
     return repository_link + "/blob/master/"
 
 
-def get_line_numbers(object: Any):
+def get_line_numbers(object_name: Any):
     """
     Find on which lines is the given object defined.
 
     Arguments:
-        object:
+        object_name:
             For which object (class, method, function) to get the line numbers.
 
     Note:
@@ -50,7 +54,7 @@ def get_line_numbers(object: Any):
         #L10-L25
     """
     try:
-        source_lines = inspect.getsourcelines(object)
+        source_lines = inspect.getsourcelines(object_name)
     except TypeError:
         return "#"
 
