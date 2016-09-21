@@ -6,9 +6,8 @@ import pytest
 @pytest.fixture(scope="session")
 def check_directory():
     """
-    Check if a user is inside the 'tests' directory or not.
-
-    If not, change the directory to it for successful running tests.
+    If a user will run tests from project root directory, then change directory
+    to 'tests' for successful running.
     """
-    if os.path.relpath(".", "..") != "tests":
+    if os.path.relpath(".", "..") != "tests" and "setup.py" in os.listdir():
         os.chdir("tests/")
