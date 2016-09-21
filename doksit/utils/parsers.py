@@ -1,7 +1,11 @@
+"""
+Here are defined parsers (they get some data and convert it to proper format).
+"""
+
 import collections
 import re
 
-parameter_regex = re.compile("[\w_]+:?([\w_\[\]\.]+)?=?(.+)?")
+PARAMETER_REGEX = re.compile(r"[\w_]+:?([\w_\[\]\.]+)?=?(.+)?")
 
 
 def parse_parameters(parameters: collections.OrderedDict):
@@ -34,7 +38,7 @@ def parse_parameters(parameters: collections.OrderedDict):
         else:
             to_parse = str(parameters[parameter])
             annotation, default_value = \
-                parameter_regex.search(to_parse).groups()
+                PARAMETER_REGEX.search(to_parse).groups()
 
             if annotation is None:
                 return False
@@ -59,12 +63,12 @@ def parse_parameters(parameters: collections.OrderedDict):
     return output
 
 
-argument_regex = re.compile("^    ([\w_\*]+)")
-language_regex = re.compile("Example: \((\w+)\)")
+ARGUMENT_REGEX = re.compile(r"^    ([\w_\*]+)")
+LANGUAGE_REGEX = re.compile(r"Example: \((\w+)\)")
 
 
 def markdown_docstring(docstring: str,
-                       parameters: collections.OrderedDict() = {}):
+                       parameters: collections.OrderedDict()=None):
     """
     Read the given docstring and convert it to Markdown format.
 
@@ -97,36 +101,35 @@ def markdown_docstring(docstring: str,
 
     for line_number, line in enumerate(splited_docstring):
         if line.startswith("Arguments:"):
-            """
-            Convert for example:
+            # Convert for example:
+            #
+            #     Arguments:
+            #         foo:
+            #             Argument description.
+            #         bar:
+            #             Argument description
+            #             over two lines.
+            #
+            # to:
+            #
+            #     **Arguments:**:
+            #
+            #     - foo (str):
+            #         - Argument description.
+            #     - bar (int, optional, default 10):
+            #         - Argument description
+            #     over two lines.
+            #
+            # The information about data types and default values will be
+            # get from the 'doksit.utils.parsers.parse_parameters'
+            # function.
+            #
+            # If a user defined itself data types and default values like:
+            #
+            #     bar (int, optional, default 10)
+            #
+            # then there is no need for parsing.
 
-                Arguments:
-                    foo:
-                        Argument description.
-                    bar:
-                        Argument description
-                        over two lines.
-
-            to:
-
-                **Arguments:**:
-
-                - foo (str):
-                    - Argument description.
-                - bar (int, optional, default 10):
-                    - Argument description
-                over two lines.
-
-            The information about data types and default values will be
-            get from the 'doksit.utils.parsers.parse_parameters'
-            function.
-
-            If a user defined itself data types and default values like:
-
-                bar (int, optional, default 10)
-
-            then there is no need for parsing.
-            """
             splited_docstring[line_number] = "**Arguments:**\n"
 
             arguments_section = splited_docstring[(line_number + 1):]
@@ -155,7 +158,7 @@ def markdown_docstring(docstring: str,
 
                     if parsed_parameters:  # User uses type hints.
                         argument_name = \
-                            argument_regex.search(argument).group(1)
+                            ARGUMENT_REGEX.search(argument).group(1)
 
                         if argument_name.startswith("*"):  # *args or **kwargs
                             argument_name = argument_name.lstrip("*")
@@ -172,26 +175,25 @@ def markdown_docstring(docstring: str,
                     is_first_line_description = True
 
         elif line.startswith("Attributes:"):
-            """
-            Convert for example:
+            # Convert for example:
+            #
+            #     Attributes:
+            #         attribute_name (type):
+            #             Attribute description.
+            #         another_one (type):
+            #             Long attribute description
+            #             over two lines.
+            #
+            # to:
+            #
+            #     **Attributes:**:
+            #
+            #     - attribute_name (type):
+            #         - Attribute description.
+            #     - another_one (type):
+            #         - Long attribute description
+            #     over two lines.
 
-                Attributes:
-                    attribute_name (type):
-                        Attribute description.
-                    another_one (type):
-                        Long attribute description
-                        over two lines.
-
-            to:
-
-                **Attributes:**:
-
-                - attribute_name (type):
-                    - Attribute description.
-                - another_one (type):
-                    - Long attribute description
-                over two lines.
-            """
             splited_docstring[line_number] = "**Attributes:**\n"
 
             attributes_section = splited_docstring[(line_number + 1):]
@@ -224,54 +226,53 @@ def markdown_docstring(docstring: str,
                     is_first_line_description = True
 
         elif line.startswith("Example:"):
-            """
-            Convert for example:
+            # Convert for example:
+            #
+            #     Example:
+            #         x = 1
+            #         y = 2
+            #         print(x * y)
+            #
+            #         # Line after break line
+            #
+            #         class Foo:
+            #             pass
+            #
+            # to:
+            #
+            #     Example:
+            #
+            #     ```python
+            #     x = 1
+            #     y = 2
+            #     print(x * y)
+            #
+            #     # Line after break line
+            #
+            #     class Foo:
+            #         pass
+            #     ```
+            #
+            # User may also define different language, like:
+            #
+            #     Example: (markdown)
+            #     Example: (bash)
+            #
+            # then it will be automatically rewritten to:
+            #
+            #     Example:
+            #
+            #     ```markdown
+            #     ...
+            #
+            # or
+            #
+            #     ```bash
 
-                Example:
-                    x = 1
-                    y = 2
-                    print(x * y)
-
-                    # Line after break line
-
-                    class Foo:
-                        pass
-
-            to:
-
-                Example:
-
-                ```python
-                x = 1
-                y = 2
-                print(x * y)
-
-                # Line after break line
-
-                class Foo:
-                    pass
-                ```
-
-            User may also define different language, like:
-
-                Example: (markdown)
-                Example: (bash)
-
-            then it will be automatically rewritten to:
-
-                Example:
-
-                ```markdown
-                ...
-
-            or
-
-                ```bash
-            """
             example_line = splited_docstring[line_number]
 
-            if language_regex.search(example_line):
-                language = language_regex.search(example_line).group(1)
+            if LANGUAGE_REGEX.search(example_line):
+                language = LANGUAGE_REGEX.search(example_line).group(1)
 
                 splited_docstring[line_number] = "Example:"
             else:
@@ -306,34 +307,33 @@ def markdown_docstring(docstring: str,
             splited_docstring[line_number] = "**Note:**"
 
         elif line.startswith("Raises:"):
-            """
-            Convert for example:
+            # Convert for example:
+            #
+            #     Raises:
+            #         AssertionError:
+            #             Reason.
+            #         TypeError:
+            #             Long
+            #             reason.
+            #         ValueError:
+            #             1. reason
+            #             2. long
+            #                 reason
+            #
+            # to:
+            #
+            #     **Raises:**
+            #
+            #     - AssertionError:
+            #         - Reason.
+            #     - TypeError:
+            #         - Long
+            #     reason.
+            #     - ValueError:
+            #         1. reason
+            #         2. long
+            #     reason
 
-                Raises:
-                    AssertionError:
-                        Reason.
-                    TypeError:
-                        Long
-                        reason.
-                    ValueError:
-                        1. reason
-                        2. long
-                            reason
-
-            to:
-
-                **Raises:**
-
-                - AssertionError:
-                    - Reason.
-                - TypeError:
-                    - Long
-                reason.
-                - ValueError:
-                    1. reason
-                    2. long
-                reason
-            """
             splited_docstring[line_number] = "**Raises:**\n"
 
             raises_section = splited_docstring[(line_number + 1):]
@@ -382,22 +382,21 @@ def markdown_docstring(docstring: str,
             splited_docstring[line_number] = "**Returns:**"
 
         elif line.startswith("Todo:"):
-            """
-            Convert for example:
+            # Convert for example:
+            #
+            #     Todo:
+            #         - one item
+            #         - two items
+            #             over two lines
+            #
+            # to:
+            #
+            #     **Todo:**:
+            #
+            #     - [ ] one item
+            #     - [ ] two items
+            #     over two lines
 
-                Todo:
-                    - one item
-                    - two items
-                        over two lines
-
-            to:
-
-                **Todo:**:
-
-                - [ ] one item
-                - [ ] two items
-                over two lines
-            """
             splited_docstring[line_number] = "**Todo:**\n"
 
             todo_section = splited_docstring[(line_number + 1):]
