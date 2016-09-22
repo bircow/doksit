@@ -1,6 +1,6 @@
 import pytest
 
-from doksit.api import class_regex, method_regex, function_regex, read_file
+from doksit.api import CLASS_REGEX, METHOD_REGEX, FUNCTION_REGEX, read_file
 
 
 @pytest.mark.parametrize("line", [
@@ -9,7 +9,7 @@ from doksit.api import class_regex, method_regex, function_regex, read_file
     "class Foo(Bar, object):",
 ])
 def test_regex_for_classes(line):
-    assert class_regex.search(line).group(1) == "Foo"
+    assert CLASS_REGEX.search(line).group(1) == "Foo"
 
 
 @pytest.mark.parametrize("line", [
@@ -19,7 +19,7 @@ def test_regex_for_classes(line):
     "    def sample_method(self, arg1, arg2, ...):"
 ])
 def test_regex_for_methods(line):
-    assert method_regex.search(line).group(1) == "sample_method"
+    assert METHOD_REGEX.search(line).group(1) == "sample_method"
 
 
 @pytest.mark.parametrize("line", [
@@ -27,7 +27,7 @@ def test_regex_for_methods(line):
     "def function_name(arg1, arg2, ...):"
 ])
 def test_regex_for_functions(line):
-    assert function_regex.search(line).group(1) == "function_name"
+    assert FUNCTION_REGEX.search(line).group(1) == "function_name"
 
 
 def test_read_sample_file():

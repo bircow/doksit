@@ -6,30 +6,27 @@ command:
 """
 
 import collections
+import importlib
 import inspect
 import os
 import re
 
-from typing import List
-
 from doksit.utils.data_types import MyOrderedDict
-from doksit.utils.inspectors import get_line_numbers, get_repository_link
+from doksit.utils.inspectors import get_line_numbers, get_repository_url
 from doksit.utils.parsers import markdown_docstring
 
-file_paths = []
 
-
-def find_files(directory_path: str) -> List[str]:
+def find_files(package_path: str):
     """
-    Browse the given directory and find all python files (get their relative
-    paths).
+    Browse the given package directory and find all python files (get their
+    relative paths).
 
     Note:
-        Files in the `__pycache__` directories are excluded. The same goes for
-        the `__init__.py` and `__main__.py` files.
+        Files in the `__pycache__` subdirectories are excluded. The same goes
+        for the `__init__.py` and `__main__.py` files.
 
     Arguments:
-        directory_path:
+        package_path:
             Relative path to the Python package directory.
 
     Returns:
@@ -38,35 +35,44 @@ def find_files(directory_path: str) -> List[str]:
     Example:
         ["package/module.py", "package/subpackage/module.py"]
     """
-    scanned_directory = os.scandir(directory_path)
+    file_paths = []
 
-    # Entries in the 'scanned_directory' are unorered (mixed files and
-    # directories), but I want to first loop over files and then over
-    # directories.
+    def get_file_paths(directory_path: str):
+        """
+        Get all Python files in the given directory / subdirectory and result
+        appends to nonlocal variable `file_paths`.
 
-    founded_files = []
-    founded_subdirectories = []
+        Arguments:
+            directory_path (str):
+                Path to the given directory / subdirectory.
+        """
+        scanned_directory = os.scandir(directory_path)
 
-    for entry in scanned_directory:
-        if entry.is_dir() and entry.name != "__pycache__":
-            founded_subdirectories.append(entry.path)
+        found_files = []
+        found_subdirectories = []
 
-        elif entry.is_file() and entry.name.endswith(".py") \
-                and entry.name not in ["__init__.py", "__main__.py"]:
-            founded_files.append(entry.path)
+        for entry in scanned_directory:
+            if entry.is_dir() and entry.name != "__pycache__":
+                found_subdirectories.append(entry.path)
 
-    global file_paths
-    file_paths += sorted(founded_files)
+            elif entry.is_file() and entry.name.endswith(".py") \
+                    and entry.name not in ["__init__.py", "__main__.py"]:
+                found_files.append(entry.path)
 
-    for subdirectory in sorted(founded_subdirectories):
-        find_files(subdirectory)
+        nonlocal file_paths
+        file_paths += sorted(found_files)
+
+        for subdirectory in sorted(found_subdirectories):
+            get_file_paths(subdirectory)
+
+    get_file_paths(package_path)
 
     return file_paths
 
 
-class_regex = re.compile("^class (\w+):?|\(")
-method_regex = re.compile("^    def ([\w_]+)\((self|cls)")
-function_regex = re.compile("^def ([\w_]+)")
+CLASS_REGEX = re.compile(r"^class (\w+):?|\(")
+METHOD_REGEX = re.compile(r"^    def ([\w_]+)\((self|cls)")
+FUNCTION_REGEX = re.compile(r"^def ([\w_]+)")
 
 
 def read_file(file_path: str):
@@ -96,26 +102,26 @@ def read_file(file_path: str):
     """
     absolute_path = os.getcwd() + "/" + file_path
 
-    with open(absolute_path) as f:
-        file = f.readlines()
+    with open(absolute_path) as file:
+        file_content = file.readlines()
 
     classes = MyOrderedDict()
     functions = []
 
-    for line in file:
+    for line in file_content:
         if line.startswith("class "):
-            classes[class_regex.search(line).group(1)] = []  # No methods yet
+            classes[CLASS_REGEX.search(line).group(1)] = []  # No methods yet
 
         if line.lstrip().startswith("def "):
-            if method_regex.search(line):
-                method_name = method_regex.search(line).group(1)
+            if METHOD_REGEX.search(line):
+                method_name = METHOD_REGEX.search(line).group(1)
 
                 if method_name == "__init__" or \
                         not method_name.startswith("_"):
                     classes[classes.last()].append(method_name)
 
-            elif function_regex.search(line):
-                function_name = function_regex.search(line).group(1)
+            elif FUNCTION_REGEX.search(line):
+                function_name = FUNCTION_REGEX.search(line).group(1)
 
                 if not function_name.startswith("_"):
                     functions.append(function_name)
@@ -135,7 +141,8 @@ def get_documentation(file_metadata: tuple):
             Returned data from the 'doksit.api.read_file' function.
 
     Returns:
-        The markdowned documentation for the given file.
+        The markdowned documentation for the given file or None (there is
+        nothing to markdown).
 
     Example: (markdown)
         ## package.module
@@ -165,15 +172,14 @@ def get_documentation(file_metadata: tuple):
     module_path = file_path.replace("/", ".").rstrip(".py")
     documentation = "## {module_path}\n\n".format(**locals())
 
-    repository_url = get_repository_link()
+    repository_url = get_repository_url()
 
     if repository_url is not None:
         repository_url += file_path
-        source_url = "([source]({url}))\n\n"  # Will be used multiple times.
 
-    exec("import {module_path} as mdl".format(**locals()))
+        source_url = "([source]({url}))\n\n"
 
-    imported_module = locals()["mdl"]
+    imported_module = importlib.import_module(module_path)
     module_docstring = inspect.getdoc(imported_module) or ""
 
     if module_docstring:
@@ -182,10 +188,7 @@ def get_documentation(file_metadata: tuple):
 
     if classes:
         for class_name in classes:
-            exec("from {module_path} import {class_name} as cls".format(
-                **locals()))
-
-            imported_class = locals()["cls"]
+            imported_class = getattr(imported_module, class_name)
             class_docstring = inspect.getdoc(imported_class) or ""
 
             documentation += "### class {class_name}\n".format(**locals())
@@ -208,7 +211,7 @@ def get_documentation(file_metadata: tuple):
                 method_parameters = collections.OrderedDict(method_parameters)
 
                 if method_name == "__init__":
-                    method_name = "\_\_init\_\_"
+                    method_name = r"\_\_init\_\_"
 
                 documentation += "#### method {method_name}\n".format(
                     **locals())
@@ -232,10 +235,7 @@ def get_documentation(file_metadata: tuple):
 
     if functions:
         for function_name in functions:
-            exec("from {module_path} import {function_name} as func".format(
-                **locals()))
-
-            imported_function = locals()["func"]
+            imported_function = getattr(imported_module, function_name)
             function_docstring = inspect.getdoc(imported_function) or ""
             function_parameters = \
                 inspect.signature(imported_function).parameters
