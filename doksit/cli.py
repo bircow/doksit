@@ -10,7 +10,8 @@ from doksit.api import find_files, get_documentation, read_file
 @click.group()
 def cli():
     """
-    This function only initialize `doksit` CLI.
+    This function only initialize `doksit` CLI. Real commands (subcommands)
+    are defined below.
     """
     pass
 
