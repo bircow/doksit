@@ -37,7 +37,7 @@ def api(package_directory: str):
     for file in file_paths:
         file_documentation = get_documentation(read_file(file))
 
-        if file_documentation is not None:
+        if file_documentation:
             api_documentation.append(file_documentation)
 
     # Remove 2 blank lines at the end of last item in the 'api_documentation'.

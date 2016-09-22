@@ -40,8 +40,8 @@ def parse_parameters(parameters: collections.OrderedDict):
             annotation, default_value = \
                 PARAMETER_REGEX.search(to_parse).groups()
 
-            if annotation is None:
-                return False
+            if not annotation:
+                return
 
             if annotation.startswith("typing."):
                 # Annotation is for example `typing.List`, but this form

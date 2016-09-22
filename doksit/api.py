@@ -174,7 +174,7 @@ def get_documentation(file_metadata: tuple):
 
     repository_url = get_repository_url()
 
-    if repository_url is not None:
+    if repository_url:
         repository_url += file_path
 
         source_url = "([source]({url}))\n\n"
@@ -193,7 +193,7 @@ def get_documentation(file_metadata: tuple):
 
             documentation += "### class {class_name}\n".format(**locals())
 
-            if repository_url is not None:
+            if repository_url:
                 link_to_class = repository_url + get_line_numbers(
                     imported_class)
                 documentation += source_url.format(url=link_to_class)
@@ -216,7 +216,7 @@ def get_documentation(file_metadata: tuple):
                 documentation += "#### method {method_name}\n".format(
                     **locals())
 
-                if repository_url is not None:
+                if repository_url:
                     link_to_method = repository_url + get_line_numbers(
                         method_object)
                     documentation += source_url.format(url=link_to_method)
@@ -244,7 +244,7 @@ def get_documentation(file_metadata: tuple):
             documentation += "### function {function_name}\n".format(
                 **locals())
 
-            if repository_url is not None:
+            if repository_url:
                 link_to_function = repository_url + get_line_numbers(
                     imported_function)
                 documentation += source_url.format(url=link_to_function)
