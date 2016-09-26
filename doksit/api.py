@@ -14,7 +14,7 @@ import re
 from typing import Any
 
 from doksit.utils.data_types import MyOrderedDict
-from doksit.utils.inspectors import get_line_numbers, get_repository_url
+from doksit.utils.inspectors import get_line_numbers
 from doksit.utils.parsers import markdown_docstring
 
 
@@ -114,7 +114,7 @@ def read_file(file_path: str):
         if line.startswith("class "):
             classes[CLASS_REGEX.search(line).group(1)] = []  # No methods yet
 
-        if line.lstrip().startswith("def "):
+        elif line.lstrip().startswith("def "):
             if METHOD_REGEX.search(line):
                 method_name = METHOD_REGEX.search(line).group(1)
 
@@ -131,7 +131,7 @@ def read_file(file_path: str):
     return file_path, classes, functions
 
 
-def get_documentation(file_metadata: tuple):
+def get_documentation(file_metadata: tuple, repository_url: str=None):
     """
     Create markdowned documentation for the given Python file.
 
@@ -141,6 +141,8 @@ def get_documentation(file_metadata: tuple):
     Arguments:
         file_metadata:
             Returned data from the 'doksit.api.read_file' function.
+        repository_url:
+            Absolute path to the GitHub repository (prefix).
 
     Returns:
         The markdowned documentation for the given file or None (there is
@@ -174,9 +176,7 @@ def get_documentation(file_metadata: tuple):
     module_path = file_path.replace("/", ".").rstrip(".py")
     documentation = "## {module_path}\n\n".format(**locals())
 
-    repository_url = get_repository_url()
-
-    def insert_source_url(is_module: bool=False, object_name: Any=None):
+    def insert_source_url(object_name: Any=None, is_module: bool=False):
         """
         Insert into documentation below each objects their link to source code.
 
@@ -184,24 +184,23 @@ def get_documentation(file_metadata: tuple):
         a blank line will be inserted.
 
         Arguments:
+            object_name (Any, optional, default None):
+                Reference to an object (for getting the object location).
             is_module (bool, optional, default False):
                 Whether the source link will be for module only or for objects
                 inside it.
-            object_name (Any, optional, default None):
-                Reference to an object.
 
         Example: (markdown)
             ([source](https://github.com/.../blob/master/doksit/api.py))
 
-            # or for objects (will be highlighted)
+            # or for classes / methods / functions (codes will be highlighted)
 
             ([source](.../api.py#L1-L10))
         """
         nonlocal documentation
-        nonlocal file_path
-        nonlocal repository_url
 
         if repository_url:
+            nonlocal file_path
             source_url = "([source]({repository_url}{file_path}{lines}))\n\n"
 
             if is_module:
@@ -212,25 +211,45 @@ def get_documentation(file_metadata: tuple):
         else:
             documentation += "\n"
 
-    insert_source_url(is_module=True)
+    def insert_object_documentation(object_name: Any, is_function=False,
+                                    is_module=False):
+        """
+        Insert into documentation a docstring for the given object + its
+        link to source code.
+
+        Arguments:
+            object_name (Any):
+                For which object to get its docstring.
+            is_function (bool, optional, default False):
+                Whether the object is a function or method.
+            is_module (bool, optional, default False)
+
+        """
+        if is_module:
+            insert_source_url(object_name, is_module=True)
+        else:
+            insert_source_url(object_name)
+
+        object_docstring = inspect.getdoc(object_name) or ""
+        nonlocal documentation
+
+        if object_docstring:
+            if not is_function:
+                documentation += markdown_docstring(object_docstring) + "\n\n"
+            else:
+                function_parameters = collections.OrderedDict(
+                    inspect.signature(object_name).parameters)
+                documentation += markdown_docstring(
+                    object_docstring, function_parameters) + "\n\n"
 
     imported_module = importlib.import_module(module_path)
-    module_docstring = inspect.getdoc(imported_module) or ""
-
-    if module_docstring:
-        documentation += markdown_docstring(module_docstring) + "\n\n"
+    insert_object_documentation(imported_module, is_module=True)
 
     for class_name in classes:
         documentation += "### class {class_name}\n".format(**locals())
 
         imported_class = getattr(imported_module, class_name)
-
-        insert_source_url(object_name=imported_class)
-
-        class_docstring = inspect.getdoc(imported_class) or ""
-
-        if class_docstring:
-            documentation += markdown_docstring(class_docstring) + "\n\n"
+        insert_object_documentation(imported_class)
 
         for method_name in classes[class_name]:
             method_object = getattr(imported_class, method_name)
@@ -240,31 +259,13 @@ def get_documentation(file_metadata: tuple):
 
             documentation += "#### method {method_name}\n".format(
                 **locals())
-
-            insert_source_url(object_name=method_object)
-
-            method_docstring = inspect.getdoc(method_object) or ""
-            method_parameters = collections.OrderedDict(
-                inspect.signature(method_object).parameters)
-
-            if method_docstring:
-                documentation += markdown_docstring(
-                    method_docstring, method_parameters) + "\n\n"
+            insert_object_documentation(method_object, is_function=True)
 
     for function_name in functions:
         documentation += "### function {function_name}\n".format(
             **locals())
 
         imported_function = getattr(imported_module, function_name)
-
-        insert_source_url(object_name=imported_function)
-
-        function_docstring = inspect.getdoc(imported_function) or ""
-        function_parameters = collections.OrderedDict(
-            inspect.signature(imported_function).parameters)
-
-        if function_docstring:
-            documentation += markdown_docstring(
-                function_docstring, function_parameters) + "\n\n"
+        insert_object_documentation(imported_function, is_function=True)
 
     return documentation

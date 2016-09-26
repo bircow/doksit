@@ -5,6 +5,7 @@ Here are defined command line interfaces (CLI).
 import click
 
 from doksit.api import find_files, get_documentation, read_file
+from doksit.utils.inspectors import get_repository_url
 
 
 @click.group()
@@ -31,11 +32,12 @@ def api(package_directory: str):
             Name of the Python package (relative path).
     """
     api_documentation = ["# API Reference\n"]
-
     file_paths = find_files(package_directory)
+    repository_url = get_repository_url()
 
     for file in file_paths:
-        file_documentation = get_documentation(read_file(file))
+        file_metadata = read_file(file)
+        file_documentation = get_documentation(file_metadata, repository_url)
 
         if file_documentation:
             api_documentation.append(file_documentation)

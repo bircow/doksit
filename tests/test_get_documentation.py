@@ -1,6 +1,7 @@
 import sys
 
 from doksit.cli import get_documentation, read_file
+from doksit.utils.inspectors import get_repository_url
 
 # IMPORTANT:
 #
@@ -16,7 +17,8 @@ def test_get_documentation_for_sample_file():
     Sample file (module) is 'test_data.module'.
     """
     file_metadata = read_file("test_data/module.py")
-    file_documentation = get_documentation(file_metadata)
+    repository_url = get_repository_url()
+    file_documentation = get_documentation(file_metadata, repository_url)
 
     assert "test_data.module" in file_documentation
     assert "This is a module docstring, right?" in file_documentation
