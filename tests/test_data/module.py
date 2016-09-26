@@ -75,6 +75,13 @@ class Foo:
         """
         pass
 
+    @staticmethod
+    def static_method():
+        """
+        This is a static method.
+        """
+        pass
+
     def _protected(self) -> list:
         """
         This will be ignored.

@@ -32,7 +32,7 @@ def test_get_documentation_for_sample_file():
     # (test is run inside that folder), but result is expected (right).
 
     assert "https://github.com/nait-aul/doksit/blob/master/" \
-        "test_data/module.py#L12-L94" in file_documentation
+        "test_data/module.py#L12-L101" in file_documentation
 
     assert "method _protected" not in file_documentation
     assert "method __private" not in file_documentation

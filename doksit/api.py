@@ -74,6 +74,7 @@ def find_files(package_path: str):
 
 CLASS_REGEX = re.compile(r"^class (\w+):?|\(")
 METHOD_REGEX = re.compile(r"^    def ([\w_]+)\((self|cls)")
+STATIC_METHOD_REGEX = re.compile(r"    def ([\w_]+)\(")
 FUNCTION_REGEX = re.compile(r"^def ([\w_]+)")
 
 
@@ -110,7 +111,7 @@ def read_file(file_path: str):
     classes = MyOrderedDict()
     functions = []
 
-    for line in file_content:
+    for line_number, line in enumerate(file_content):
         if line.startswith("class "):
             classes[CLASS_REGEX.search(line).group(1)] = []  # No methods yet
 
@@ -127,6 +128,14 @@ def read_file(file_path: str):
 
                 if not function_name.startswith("_"):
                     functions.append(function_name)
+            else:
+                previous_line = file_content[line_number - 1].lstrip()
+
+                if previous_line == "@staticmethod\n":
+                    method_name = STATIC_METHOD_REGEX.search(line).group(1)
+
+                    if not method_name.startswith("_"):
+                        classes[classes.last()].append(method_name)
 
     return file_path, classes, functions
 
