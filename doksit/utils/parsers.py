@@ -68,7 +68,7 @@ LANGUAGE_REGEX = re.compile(r"Example: \((\w+)\)")
 
 
 def markdown_docstring(docstring: str,
-                       parameters: collections.OrderedDict()=None):
+                       parameters: collections.OrderedDict=None):
     """
     Read the given docstring and convert it to Markdown format.
 
@@ -99,327 +99,315 @@ def markdown_docstring(docstring: str,
     """
     splited_docstring = docstring.split("\n")
 
-    for line_number, line in enumerate(splited_docstring):
-        if line.startswith("Arguments:"):
-            # Convert for example:
-            #
-            #     Arguments:
-            #         foo:
-            #             Argument description.
-            #         bar:
-            #             Argument description
-            #             over two lines.
-            #
-            # to:
-            #
-            #     **Arguments:**:
-            #
-            #     - foo (str):
-            #         - Argument description.
-            #     - bar (int, optional, default 10):
-            #         - Argument description
-            #     over two lines.
-            #
-            # The information about data types and default values will be
-            # get from the 'doksit.utils.parsers.parse_parameters'
-            # function.
-            #
-            # If a user defined itself data types and default values like:
-            #
-            #     bar (int, optional, default 10)
-            #
-            # then there is no need for parsing.
+    def bold_header(line_number: int, line: str):
+        """
+        Make the found header bold and for some add new line at the end.
 
-            splited_docstring[line_number] = "**Arguments:**\n"
+        Arguments:
+            line_number (int):
+                Current line number (index) of outer variable
+                `splited_docstring`.
+            line (str):
+                Content at the given line number.
 
-            arguments_section = splited_docstring[(line_number + 1):]
-            lines = 0
-            is_first_line_description = False
+        Example: (markdown)
+            Note: -> **Note:**
+
+        List of supported headers for bolding:
+
+        - Arguments
+        - Attributes
+        - Note
+        - Raises
+        - Returns
+        - Todo
+        - Warning
+        - Yields
+
+        Exception:
+
+        - Example
+        """
+        nonlocal splited_docstring
+
+        headers_with_new_line = [
+            "Arguments:",
+            "Attributes:",
+            "Raises:",
+            "Todo:"
+        ]
+
+        if line in headers_with_new_line:
+            splited_docstring[line_number] = "**" + line + "**\n"
+        else:
+            splited_docstring[line_number] = "**" + line + "**"
+
+    def markdown_description_sections(line_number, line):
+        """
+        Markdown the `Arguments:` or the `Attributes` or the `Raises` section.
+
+        Note:
+            They share very similar codes for markdowning, therefore they are
+            handled in the same function.
+
+        Example: (markdown)
+                Arguments:
+                    foo:
+                        Argument description.
+                    bar:
+                        Argument description
+                        over two lines.
+
+            converts to:
+
+                **Arguments:**:
+
+                - foo (str):
+                    - Argument description.
+                - bar (int, optional, default 10):
+                    - Argument description
+                over two lines.
+
+            ---
+
+                Attributes:
+                    attribute_name (type):
+                        Attribute description.
+                    another_one (type):
+                        Long attribute description
+                        over two lines.
+
+            converts to:
+
+                **Attributes:**:
+
+                - attribute_name (type):
+                    - Attribute description.
+                - another_one (type):
+                    - Long attribute description
+                over two lines.
+
+            ---
+
+            Raises:
+                AssertionError:
+                    Reason.
+                TypeError:
+                    Long
+                    reason.
+                ValueError:
+                    1. reason
+                    2. long
+                        reason
+
+            converts to:
+
+                **Raises:**
+
+                - AssertionError:
+                    - Reason.
+                - TypeError:
+                    - Long
+                reason.
+                - ValueError:
+                    1. reason
+                    2. long
+                reason
+        """
+        bold_header(line_number, line)
+
+        nonlocal splited_docstring
+        section = splited_docstring[(line_number + 1):]
+        lines = 0
+        is_first_line_description = False
+        is_arguments_section = line if line == "Arguments:" else False
+
+        if is_arguments_section:
             parsed_parameters = parse_parameters(parameters)
 
-            for argument in arguments_section:
-                if argument == "":  # End of the 'Arguments' section.
+        for row in section:
+            if row == "":  # End of `Arguments / Attributes / Raises` section.
+                break
+
+            elif row.startswith("            "):  # Only the `Raises` section.
+                lines += 1
+                splited_docstring[line_number + lines] = row.lstrip(" ")
+
+            elif row.startswith("        "):
+                lines += 1
+
+                # In the 'Raises' section may be the first character after
+                # spaces a number. If so, there is no need to add a bullet
+                # point.
+
+                try:
+                    assert line == "Raises:"
+                    int(row.lstrip(" ")[0])
+
+                    splited_docstring[line_number + lines] = \
+                        "    " + row.lstrip(" ")
+                    continue
+                except (AssertionError, ValueError):
+                    pass
+
+                if is_first_line_description:
+                    splited_docstring[line_number + lines] = \
+                        "    - " + row.lstrip(" ")
+
+                    is_first_line_description = False
+                else:
+                    splited_docstring[line_number + lines] = \
+                        row.lstrip(" ")
+
+            elif row.startswith("    "):
+                lines += 1
+
+                if is_arguments_section and parsed_parameters:
+                    argument_name = \
+                        ARGUMENT_REGEX.search(row).group(1)
+
+                    if argument_name.startswith("*"):  # Eg. *args or **kwargs
+                        argument_name = argument_name.lstrip("*")
+
+                    splited_docstring[line_number + lines] = \
+                        "- " + parsed_parameters[argument_name]
+
+                else:
+                    splited_docstring[line_number + lines] = \
+                        "- " + row.lstrip(" ")
+
+                # Next row should be an attribute / argument / error
+                # description.
+
+                is_first_line_description = True
+
+    def markdown_example(line_number):
+        """
+        Markdown the `Example:` section.
+
+        Example:
+                Example:
+                    print(True)
+
+                    # Line after break line
+
+            converts to:
+
+                Example:
+
+                ```python
+                print(True)
+
+                # Line after break line
+                ```
+
+        User may also define different language, like:
+
+            Example: (markdown)
+
+        Then it will be automatically rewritten to:
+
+            Example:
+
+            ```markdown
+        """
+        nonlocal splited_docstring
+        example_line = splited_docstring[line_number]
+
+        if LANGUAGE_REGEX.search(example_line):
+            language = LANGUAGE_REGEX.search(example_line).group(1)
+
+            splited_docstring[line_number] = "Example:"
+        else:
+            language = "python"
+
+        example_section = splited_docstring[(line_number + 1):]
+        lines = 0
+
+        for code in example_section:
+            if code == "":
+                # May be end of the 'Example' section or just a line break
+                # in the codes.
+
+                if example_section[lines + 1].startswith("    "):
+                    lines += 1
+                    continue
+                else:
                     break
 
-                elif argument.startswith("        "):
-                    lines += 1
+            elif code.startswith("        "):
+                lines += 1
+                splited_docstring[line_number + lines] = code[4:]
 
-                    if is_first_line_description:
-                        splited_docstring[line_number + lines] = \
-                            "    - " + argument.lstrip(" ")
+            elif code.startswith("    "):
+                lines += 1
+                splited_docstring[line_number + lines] = code.lstrip(" ")
 
-                        is_first_line_description = False
-                    else:
-                        splited_docstring[line_number + lines] = \
-                            argument.lstrip(" ")
+        splited_docstring.insert(
+            (line_number + 1), "\n```{language}".format(**locals()))
+        splited_docstring.insert((line_number + 1 + lines + 1), "```")
 
-                elif argument.startswith("    "):
-                    lines += 1
+    def markdown_returns_or_yields(line_number, line):
+        """
+        Markdown the `Returns` or `Yields` section.
 
-                    if parsed_parameters:  # User uses type hints.
-                        argument_name = \
-                            ARGUMENT_REGEX.search(argument).group(1)
+        # TODO #18
+        """
+        bold_header(line_number, line)
 
-                        if argument_name.startswith("*"):  # *args or **kwargs
-                            argument_name = argument_name.lstrip("*")
+    def markdown_todo(line_number, line):
+        """
+        Markdown the `Todo:` section.
 
-                        parsed_argument = parsed_parameters[argument_name]
-                        splited_docstring[line_number + lines] = \
-                            "- " + parsed_argument
-                    else:
-                        splited_docstring[line_number + lines] = \
-                            "- " + argument.lstrip(" ")
+        Example: (markdown)
+                Todo:
+                    - one item
+                    - two items
+                        over two lines
 
-                    # Next line should be an argument description.
+            converts to:
 
-                    is_first_line_description = True
+                **Todo:**:
 
-        elif line.startswith("Attributes:"):
-            # Convert for example:
-            #
-            #     Attributes:
-            #         attribute_name (type):
-            #             Attribute description.
-            #         another_one (type):
-            #             Long attribute description
-            #             over two lines.
-            #
-            # to:
-            #
-            #     **Attributes:**:
-            #
-            #     - attribute_name (type):
-            #         - Attribute description.
-            #     - another_one (type):
-            #         - Long attribute description
-            #     over two lines.
+                - [ ] one item
+                - [ ] two items
+                over two lines
+        """
+        bold_header(line_number, line)
 
-            splited_docstring[line_number] = "**Attributes:**\n"
+        nonlocal splited_docstring
+        todo_section = splited_docstring[(line_number + 1):]
+        lines = 0
 
-            attributes_section = splited_docstring[(line_number + 1):]
-            lines = 0
-            is_first_line_description = False
+        for todo in todo_section:
+            if todo == "":  # End of 'Todo' section
+                break
 
-            for attribute in attributes_section:
-                if attribute == "":  # End of the 'Attributes' section.
-                    break
+            elif todo.startswith("        "):
+                lines += 1
+                splited_docstring[line_number + lines] = todo.lstrip(" ")
 
-                elif attribute.startswith("        "):
-                    lines += 1
+            elif todo.startswith("    -"):
+                lines += 1
+                splited_docstring[line_number + lines] = \
+                    todo.replace("    -", "- [ ]")
 
-                    if is_first_line_description:
-                        splited_docstring[line_number + lines] = \
-                            "    - " + attribute.lstrip(" ")
+    functions = {
+        "Arguments:": markdown_description_sections,
+        "Attributes:": markdown_description_sections,
+        "Note:": bold_header,
+        "Raises:": markdown_description_sections,
+        "Returns:": markdown_returns_or_yields,
+        "Todo:": markdown_todo,
+        "Warning:": bold_header,
+        "Yields:": markdown_returns_or_yields
+    }
 
-                        is_first_line_description = False
-                    else:
-                        splited_docstring[line_number + lines] = \
-                            attribute.lstrip(" ")
+    for line_number, line in enumerate(splited_docstring):
+        if line.startswith("Example:"):  # May be also 'Example: (markdown)'.
+            markdown_example(line_number)
 
-                elif attribute.startswith("    "):
-                    lines += 1
-                    splited_docstring[line_number + lines] = \
-                        "- " + attribute.lstrip(" ")
-
-                    # Next line should be an attribute description.
-
-                    is_first_line_description = True
-
-        elif line.startswith("Example:"):
-            # Convert for example:
-            #
-            #     Example:
-            #         x = 1
-            #         y = 2
-            #         print(x * y)
-            #
-            #         # Line after break line
-            #
-            #         class Foo:
-            #             pass
-            #
-            # to:
-            #
-            #     Example:
-            #
-            #     ```python
-            #     x = 1
-            #     y = 2
-            #     print(x * y)
-            #
-            #     # Line after break line
-            #
-            #     class Foo:
-            #         pass
-            #     ```
-            #
-            # User may also define different language, like:
-            #
-            #     Example: (markdown)
-            #     Example: (bash)
-            #
-            # then it will be automatically rewritten to:
-            #
-            #     Example:
-            #
-            #     ```markdown
-            #     ...
-            #
-            # or
-            #
-            #     ```bash
-
-            example_line = splited_docstring[line_number]
-
-            if LANGUAGE_REGEX.search(example_line):
-                language = LANGUAGE_REGEX.search(example_line).group(1)
-
-                splited_docstring[line_number] = "Example:"
-            else:
-                language = "python"
-
-            example_section = splited_docstring[(line_number + 1):]
-            lines = 0
-
-            for code in example_section:
-                if code == "":
-                    # Check if it's truly end of the 'Example' section or
-                    # just line break in the codes.
-
-                    if example_section[lines + 1].startswith("    "):
-                        lines += 1
-                    else:
-                        break
-
-                elif code.startswith("        "):
-                    lines += 1
-                    splited_docstring[line_number + lines] = code[4:]
-
-                elif code.startswith("    "):
-                    lines += 1
-                    splited_docstring[line_number + lines] = code.lstrip(" ")
-
-            splited_docstring.insert(
-                (line_number + 1), "\n```{language}".format(**locals()))
-            splited_docstring.insert((line_number + 1 + lines + 1), "```")
-
-        elif line.startswith("Note:"):
-            splited_docstring[line_number] = "**Note:**"
-
-        elif line.startswith("Raises:"):
-            # Convert for example:
-            #
-            #     Raises:
-            #         AssertionError:
-            #             Reason.
-            #         TypeError:
-            #             Long
-            #             reason.
-            #         ValueError:
-            #             1. reason
-            #             2. long
-            #                 reason
-            #
-            # to:
-            #
-            #     **Raises:**
-            #
-            #     - AssertionError:
-            #         - Reason.
-            #     - TypeError:
-            #         - Long
-            #     reason.
-            #     - ValueError:
-            #         1. reason
-            #         2. long
-            #     reason
-
-            splited_docstring[line_number] = "**Raises:**\n"
-
-            raises_section = splited_docstring[(line_number + 1):]
-            lines = 0
-            is_first_line_description = False
-
-            for error in raises_section:
-                if error == "":  # End of 'Raises' section.
-                    break
-
-                elif error.startswith("            "):
-                    lines += 1
-                    splited_docstring[line_number + lines] = error.lstrip(" ")
-
-                elif error.startswith("        "):
-                    lines += 1
-
-                    # Check if it's ordered (numbered) error description or
-                    # not.
-
-                    try:
-                        int(error.lstrip(" ")[0])
-                        splited_docstring[line_number + lines] = \
-                            "    " + error.lstrip(" ")
-
-                    except ValueError:
-                        if is_first_line_description:
-                            splited_docstring[line_number + lines] = \
-                                "    - " + error.lstrip(" ")
-
-                            is_first_line_description = False
-                        else:
-                            splited_docstring[line_number + lines] = \
-                                error.lstrip(" ")
-
-                elif error.startswith("    "):
-                    lines += 1
-                    splited_docstring[line_number + lines] = \
-                        "- " + error.lstrip(" ")
-
-                    # Next line should be an error description.
-
-                    is_first_line_description = True
-
-        elif line.startswith("Returns:"):
-            splited_docstring[line_number] = "**Returns:**"
-
-        elif line.startswith("Todo:"):
-            # Convert for example:
-            #
-            #     Todo:
-            #         - one item
-            #         - two items
-            #             over two lines
-            #
-            # to:
-            #
-            #     **Todo:**:
-            #
-            #     - [ ] one item
-            #     - [ ] two items
-            #     over two lines
-
-            splited_docstring[line_number] = "**Todo:**\n"
-
-            todo_section = splited_docstring[(line_number + 1):]
-            lines = 0
-
-            for todo in todo_section:
-                if todo == "":  # End of 'Todo' section
-                    break
-
-                elif todo.startswith("        "):
-                    lines += 1
-                    splited_docstring[line_number + lines] = \
-                        todo.lstrip(" ")
-
-                elif todo.startswith("    -"):
-                    lines += 1
-                    splited_docstring[line_number + lines] = \
-                        todo.replace("    -", "- [ ]")
-
-        elif line.startswith("Yields:"):
-            splited_docstring[line_number] = "**Yields:**"
-
-        elif line.startswith("Warning:"):
-            splited_docstring[line_number] = "**Warning:**"
+        elif line in functions:
+            functions[line](line_number, line)
 
     return "\n".join(splited_docstring)
