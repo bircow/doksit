@@ -3,7 +3,10 @@ Here are defined parsers (they get some data and convert it to proper format).
 """
 
 import collections
+import inspect
 import re
+
+from typing import Any
 
 PARAMETER_REGEX = re.compile(r"[\w_]+:?([\w_\[\]\.]+)?=?(.+)?")
 
@@ -61,6 +64,45 @@ def parse_parameters(parameters: collections.OrderedDict):
             output[parameter] = output[parameter] + "):"
 
     return output
+
+
+BUILTIN_TYPE_REGEX = re.compile(r"<class '([\w]+)'>")
+
+
+def parse_return_annotation(object_name: Any) -> str:
+    """
+    Parse the return annotation to human readable format.
+
+    Arguments:
+        object_name (Any):
+            For which object to get its return annotation.
+
+    The annotation may be:
+
+    1. built-in class (eg. <class 'str'>)
+    2. a class from typing (eg. typing.List<~T>[int])
+    3. own class
+
+    Returns:
+        The parsed return annotation.
+
+    Example:
+        "str"  # or
+        "List[str]"
+    """
+    return_annotation = str(inspect.signature(object_name).return_annotation)
+
+    if not return_annotation:
+        return
+    else:
+        if BUILTIN_TYPE_REGEX.search(return_annotation):
+            return BUILTIN_TYPE_REGEX.search(return_annotation).group(1)
+
+        elif return_annotation.startswith("typing."):
+            return return_annotation.lstrip("typing.").replace("<~T>", "")
+
+        else:
+            return return_annotation
 
 
 ARGUMENT_REGEX = re.compile(r"^    ([\w_\*]+)")

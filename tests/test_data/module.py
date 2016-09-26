@@ -6,7 +6,7 @@ Example:
     Hello World!
 """
 
-from typing import List
+from typing import List, Union
 
 
 class Foo:
@@ -58,7 +58,7 @@ class Foo:
         """
         pass
 
-    def method(self) -> bool:
+    def method(self) -> List[str]:
         """
         This is a brief description.
 
@@ -126,7 +126,7 @@ def function(n) -> int:
     pass
 
 
-def another_function() -> None:
+def another_function() -> Union[str, int]:
     """This is a brief online description."""
     pass
 
