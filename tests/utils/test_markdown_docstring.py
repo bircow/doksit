@@ -163,7 +163,7 @@ def test_markdown_another_method_docstring():
             True.
 
         Example: (markdown)
-            # Heading.
+            # Heading
     """
     method_docstring = inspect.getdoc(Foo.method)
     markdowned_method_docstring = markdown_docstring(method_docstring)
