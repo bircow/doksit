@@ -5,7 +5,6 @@ command:
     $ doksit api PACKAGE_DIRECTORY
 """
 
-import collections
 import importlib
 import inspect
 import os
@@ -246,10 +245,8 @@ def get_documentation(file_metadata: tuple, repository_url: str=None):
             if not is_function:
                 documentation += markdown_docstring(object_docstring) + "\n\n"
             else:
-                function_parameters = collections.OrderedDict(
-                    inspect.signature(object_name).parameters)
                 documentation += markdown_docstring(
-                    object_docstring, function_parameters) + "\n\n"
+                    object_docstring, object_name) + "\n\n"
 
     imported_module = importlib.import_module(module_path)
     insert_object_documentation(imported_module, is_module=True)

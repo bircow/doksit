@@ -27,7 +27,7 @@ def parse_parameters(parameters: collections.OrderedDict):
     section himself / herself and thus there is nothing to parse.
 
     Returns:
-        False if the user doesn't use the annotations or dictionary with the
+        None if the user doesn't use the annotations or dictionary with the
         parameter names and their parsed variant.
 
     Example:
@@ -55,11 +55,13 @@ def parse_parameters(parameters: collections.OrderedDict):
                 annotation = bad_annotation.lstrip("typing.").replace(
                     "<~T>", "")
 
-            output[parameter] = "{parameter} ({annotation}".format(**locals())
+            output[parameter] = "{parameter} ({annotation}".format(
+                parameter=parameter, annotation=annotation)
 
             if default_value:
                 output[parameter] = output[parameter] + ", optional" \
-                    ", default {default_value}".format(**locals())
+                    ", default {default_value}".format(
+                        default_value=default_value)
 
             output[parameter] = output[parameter] + "):"
 
@@ -92,7 +94,7 @@ def parse_return_annotation(object_name: Any) -> str:
     """
     return_annotation = str(inspect.signature(object_name).return_annotation)
 
-    if not return_annotation:
+    if return_annotation == "<class 'inspect._empty'>":  # No annotation found.
         return
     else:
         if BUILTIN_TYPE_REGEX.search(return_annotation):
@@ -109,17 +111,16 @@ ARGUMENT_REGEX = re.compile(r"^    ([\w_\*]+)")
 LANGUAGE_REGEX = re.compile(r"Example: \((\w+)\)")
 
 
-def markdown_docstring(docstring: str,
-                       parameters: collections.OrderedDict=None):
+def markdown_docstring(docstring: str, object_name: Any=None):
     """
     Read the given docstring and convert it to Markdown format.
 
     Arguments:
         docstring:
             Module / class / method / function docstring for markdowning.
-        parameters:
-            Method / function parameters which will be internally passed to the
-            'parse_parameters' function for further parsing.
+        object_name:
+            Function / method object for getting its parameters and
+            return annotation.
 
     Returns:
         Docstring in the Markdown format.
@@ -176,7 +177,9 @@ def markdown_docstring(docstring: str,
             "Arguments:",
             "Attributes:",
             "Raises:",
-            "Todo:"
+            "Returns:",
+            "Todo:",
+            "Yields:"
         ]
 
         if line in headers_with_new_line:
@@ -265,6 +268,8 @@ def markdown_docstring(docstring: str,
         is_arguments_section = line if line == "Arguments:" else False
 
         if is_arguments_section:
+            parameters = collections.OrderedDict(
+                inspect.signature(object_name).parameters)
             parsed_parameters = parse_parameters(parameters)
 
         for row in section:
@@ -385,17 +390,37 @@ def markdown_docstring(docstring: str,
                 lines += 1
                 splited_docstring[line_number + lines] = code.lstrip(" ")
 
-        splited_docstring.insert(
-            (line_number + 1), "\n```{language}".format(**locals()))
-        splited_docstring.insert((line_number + 1 + lines + 1), "```")
+        line_with_language = "\n```{language}".format(language=language)
+        splited_docstring.insert(line_number + 1, line_with_language)
+        splited_docstring.insert(line_number + 1 + lines + 1, "```")
 
     def markdown_returns_or_yields(line_number, line):
         """
         Markdown the `Returns` or `Yields` section.
 
-        # TODO #18
+        Example: (markdown)
+                Returns:
+                    Return description.
+
+            converts to:
+
+                **Returns:**
+
+                - str
+                    - Return description.
         """
         bold_header(line_number, line)
+
+        nonlocal splited_docstring
+        first_line_description = splited_docstring[line_number + 1]
+        new_first_line_description = "    - " + first_line_description[4:]
+        splited_docstring[line_number + 1] = new_first_line_description
+
+        return_annotation = parse_return_annotation(object_name)
+
+        if return_annotation:
+            return_type_line = "- " + return_annotation
+            splited_docstring.insert(line_number + 1, return_type_line)
 
     def markdown_todo(line_number, line):
         """

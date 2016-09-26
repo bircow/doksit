@@ -110,12 +110,9 @@ def test_markdown_method_docstring():
         The 'Foo.__init__' method has parameters which are needed to get for
         the 'markdown_docstring' function.
     """
-    method_parameters = inspect.signature(Foo.__init__).parameters
-    method_parameters = collections.OrderedDict(method_parameters)
-
     method_docstring = inspect.getdoc(Foo.__init__)
     markdowned_method_docstring = \
-        markdown_docstring(method_docstring, method_parameters)
+        markdown_docstring(method_docstring, Foo.__init__)
 
     expected_output_draft = """
     This is a brief description.
@@ -166,7 +163,8 @@ def test_markdown_another_method_docstring():
             # Heading
     """
     method_docstring = inspect.getdoc(Foo.method)
-    markdowned_method_docstring = markdown_docstring(method_docstring)
+    markdowned_method_docstring = markdown_docstring(
+        method_docstring, Foo.method)
 
     expected_output_draft = """
     This is a brief description.
@@ -177,7 +175,9 @@ def test_markdown_another_method_docstring():
         This is a warning.
 
     **Returns:**
-        True.
+
+    - List[str]
+        - True.
 
     Example:
 
@@ -214,12 +214,9 @@ def test_markdown_function_docstring():
         The 'function' function has parameters which are needed to get for the
         'markdown_docstring' function.
     """
-    function_parameters = inspect.signature(function).parameters
-    function_parameters = collections.OrderedDict(function_parameters)
-
     function_docstring = inspect.getdoc(function)
     markdowned_function_docstring = \
-        markdown_docstring(function_docstring, function_parameters)
+        markdown_docstring(function_docstring, function)
 
     expected_output_draft = """
     This is a brief description.
@@ -232,7 +229,9 @@ def test_markdown_function_docstring():
         - Description of 'n'.
 
     **Yields:**
-        Integer.
+
+    - int
+        - Integer.
 
     Example:
 
