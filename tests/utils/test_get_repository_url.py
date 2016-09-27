@@ -1,5 +1,5 @@
 from doksit.utils.inspectors import (
-    REPOSITORY_URL_REGEX, BRANCH_NAME_REGEX, get_repository_url)
+    REPOSITORY_URL_REGEX, BRANCH_NAME_REGEX, _get_repository_url)
 
 
 def test_repository_url_regex():
@@ -17,4 +17,4 @@ def test_branch_name_regex():
 
 
 def test_get_url_to_github_repository():
-    assert get_repository_url()
+    assert "doksit/" in _get_repository_url()
