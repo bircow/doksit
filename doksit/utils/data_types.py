@@ -16,5 +16,8 @@ class MyOrderedDict(collections.OrderedDict):
 
         Returns:
             The name of last inserted key.
+
+        Example:
+            "foo"
         """
         return list(self.keys())[-1]
