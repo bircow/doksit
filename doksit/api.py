@@ -6,21 +6,19 @@ command:
 """
 
 import importlib
-import inspect
 import os
 import re
 
-from typing import Any
+from typing import Any, List, Tuple, Union
 
 from doksit.utils.data_types import MyOrderedDict
 from doksit.utils.inspectors import get_line_numbers
 from doksit.utils.parsers import markdown_docstring
 
 
-def find_files(package_path: str):
+def find_files(package_path: str) -> List[str]:
     """
-    Browse the given package directory and find all Python files (get their
-    relative paths).
+    Browse the given package directory and find all Python files.
 
     Note:
         Files in the `__pycache__` subdirectories are excluded. The same goes
@@ -40,12 +38,12 @@ def find_files(package_path: str):
 
     def get_file_paths(directory_path: str):
         """
-        Get all Python files in the given directory / subdirectory and result
-        appends to nonlocal variable `file_paths`.
+        Get all Python files in the given directory and result appends to
+        the nonlocal variable `file_paths`.
 
         Arguments:
             directory_path (str):
-                Path to the given directory / subdirectory.
+                Path to the given directory.
         """
         scanned_directory = os.scandir(directory_path)
 
@@ -77,9 +75,9 @@ STATIC_METHOD_REGEX = re.compile(r"    def ([\w_]+)\(")
 FUNCTION_REGEX = re.compile(r"^def ([\w_]+)")
 
 
-def read_file(file_path: str):
+def read_file(file_path: str) -> Tuple[str, MyOrderedDict, List[str]]:
     """
-    Find in the given file classes, their methods and functions exactly in the
+    Find classes with methods and functions in the given file exactly in the
     order as they are defined.
 
     Note:
@@ -88,12 +86,10 @@ def read_file(file_path: str):
 
     Arguments:
         file_path:
-            Relative path to a Python file, eg. `directory/file.py`
+            Relative path to a Python file.
 
     Returns:
-        3-tuple, where first item is the relative file path, second is ordered
-        dict with class names and their methods and third is list of function
-        names.
+        The relative file path, classess with methods and list of functions.
 
     Example:
         (
@@ -139,9 +135,22 @@ def read_file(file_path: str):
     return file_path, classes, functions
 
 
-def get_documentation(file_metadata: tuple, repository_url: str=None):
+def _classes_documentation():
+    pass
+
+
+def _method_documentation():
+    pass
+
+
+def _functions_documentation(functions):
+    pass
+
+
+def get_documentation(file_metadata: tuple, repository_url: str=None) \
+        -> Union[str, None]:
     """
-    Create markdowned documentation for the given Python file.
+    Join all objects docstrings into one big documentation for the given file.
 
     If the file doesn't have any defined classes or functions, then no
     documentation will be created.
@@ -150,28 +159,31 @@ def get_documentation(file_metadata: tuple, repository_url: str=None):
         file_metadata:
             Returned data from the 'doksit.api.read_file' function.
         repository_url:
-            Absolute path to the GitHub repository (prefix).
+            URL prefix to the GitHub repository.
 
     Returns:
-        The markdowned documentation for the given file or None (there is
-        nothing to markdown).
+        The documentation for the given file in Markdown format or nothing
+        (the file is empty).
 
     Example: (markdown)
-        ## package.module
+        ## package_name.module_name
 
         This is a markdowned module docstring.
 
         ### class class_name
+
         ([source](absolute_url_path_to_file_and_higlighted_code_block))
 
         This is a markdowned class docstring.
 
         #### method method_name
+
         ([source](...))
 
         This is a markdowned method docstring.
 
         ### function function_name
+
         ([source](...))
 
         This is a markdowned function docstring.
@@ -182,7 +194,7 @@ def get_documentation(file_metadata: tuple, repository_url: str=None):
         return
 
     module_path = file_path.replace("/", ".").rstrip(".py")
-    documentation = "## {module_path}\n\n".format(**locals())
+    documentation = "## {module_path}\n\n".format(module_path=module_path)
 
     def insert_source_url(object_name: Any=None, is_module: bool=False):
         """
@@ -216,8 +228,6 @@ def get_documentation(file_metadata: tuple, repository_url: str=None):
             else:
                 documentation += source_url.format(
                     **locals(), lines=get_line_numbers(object_name))
-        else:
-            documentation += "\n"
 
     def insert_object_documentation(object_name: Any, is_function=False,
                                     is_module=False):
@@ -231,28 +241,23 @@ def get_documentation(file_metadata: tuple, repository_url: str=None):
             is_function (bool, optional, default False):
                 Whether the object is a function or method.
             is_module (bool, optional, default False)
-
         """
         if is_module:
             insert_source_url(object_name, is_module=True)
         else:
             insert_source_url(object_name)
 
-        object_docstring = inspect.getdoc(object_name) or ""
-        nonlocal documentation
+        object_docstring = markdown_docstring(object_name)
 
         if object_docstring:
-            if not is_function:
-                documentation += markdown_docstring(object_docstring) + "\n\n"
-            else:
-                documentation += markdown_docstring(
-                    object_docstring, object_name) + "\n\n"
+            nonlocal documentation
+            documentation += object_docstring + "\n\n"
 
     imported_module = importlib.import_module(module_path)
     insert_object_documentation(imported_module, is_module=True)
 
     for class_name in classes:
-        documentation += "### class {class_name}\n".format(**locals())
+        documentation += "### class {class_name}\n\n".format(**locals())
 
         imported_class = getattr(imported_module, class_name)
         insert_object_documentation(imported_class)
@@ -263,15 +268,15 @@ def get_documentation(file_metadata: tuple, repository_url: str=None):
             if method_name == "__init__":
                 method_name = r"\_\_init\_\_"
 
-            documentation += "#### method {method_name}\n".format(
+            documentation += "#### method {method_name}\n\n".format(
                 **locals())
             insert_object_documentation(method_object, is_function=True)
 
     for function_name in functions:
-        documentation += "### function {function_name}\n".format(
+        documentation += "### function {function_name}\n\n".format(
             **locals())
 
         imported_function = getattr(imported_module, function_name)
         insert_object_documentation(imported_function, is_function=True)
 
-    return documentation
+    return documentation[:-1]  # Remove one blank line at the end of doc.

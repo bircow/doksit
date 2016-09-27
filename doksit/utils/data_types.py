@@ -10,8 +10,11 @@ class MyOrderedDict(collections.OrderedDict):
     Upgraded `OrderedDict` from the standard library `collections`.
     """
 
-    def last(self):
+    def last(self) -> str:
         """
-        Get the name of the last inserted key.
+        Get the name of last inserted key.
+
+        Returns:
+            The name of last inserted key.
         """
         return list(self.keys())[-1]

@@ -1,38 +1,36 @@
 """
-Here are defined parsers (they get some data and convert it to proper format).
+Here are defined parsers.
 """
 
-import collections
 import inspect
 import re
 
-from typing import Any
+from typing import Any, Union
 
 PARAMETER_REGEX = re.compile(r"[\w_]+:?([\w_\[\]\.]+)?=?(.+)?")
 
 
-def parse_parameters(parameters: collections.OrderedDict):
+def parse_parameters(object_name: Any) -> Union[dict, None]:
     """
-    Parse the given parameters from a method / function to human readable
+    Parse the given parameters from a function / method to human readable
     format.
 
     Arguments:
-        parameters:
-            Returned value from the `inspect.signature(object).parameters`
-            converted to `collections.OrderedDict`, which may look like
-            `OrderedDict([('foo', <Parameter "foo:int=1")])`
+        object_name:
+            For which object (function / method) to get its parameters.
 
     If a user doesn't use annotations, then is expected that he / she writes
     explicitly data types and default values for parameters in the `Arguments:`
     section himself / herself and thus there is nothing to parse.
 
     Returns:
-        None if the user doesn't use the annotations or dictionary with the
-        parameter names and their parsed variant.
+        Parameter names with its parsed variant or nothing (no annotation
+        found).
 
     Example:
         {"foo": "foo (str):", "bar": "bar (int, optional, default 0):"}
     """
+    parameters = inspect.signature(object_name).parameters
     output = {}
 
     for parameter in parameters:
@@ -46,22 +44,27 @@ def parse_parameters(parameters: collections.OrderedDict):
             if not annotation:
                 return
 
-            if annotation.startswith("typing."):
+            elif annotation.startswith("typing."):
                 # Annotation is for example `typing.List`, but this form
                 # user didn't write. He / she wrote eg. `List[str]`, which is
-                # internally in Python `typing.List<~T>[str]`
+                # internally in Python `typing.List<~T>[str]`.
 
                 bad_annotation = str(parameters[parameter].annotation)
-                annotation = bad_annotation.lstrip("typing.").replace(
+
+                # 'typing.' may be found multiple times.
+
+                annotation = bad_annotation.replace("typing.", "").replace(
                     "<~T>", "")
 
             output[parameter] = "{parameter} ({annotation}".format(
                 parameter=parameter, annotation=annotation)
 
             if default_value:
-                output[parameter] = output[parameter] + ", optional" \
-                    ", default {default_value}".format(
-                        default_value=default_value)
+                if default_value == "None":
+                    output[parameter] += ", optional"
+                else:
+                    output[parameter] += ", optional, default " \
+                        "{default_value}".format(default_value=default_value)
 
             output[parameter] = output[parameter] + "):"
 
@@ -71,25 +74,19 @@ def parse_parameters(parameters: collections.OrderedDict):
 BUILTIN_TYPE_REGEX = re.compile(r"<class '([\w]+)'>")
 
 
-def parse_return_annotation(object_name: Any) -> str:
+def parse_return_annotation(object_name: Any) -> Union[str, None]:
     """
-    Parse the return annotation to human readable format.
+    Parse the return annotation of a function / method to human readable
+    format.
 
     Arguments:
         object_name (Any):
-            For which object to get its return annotation.
-
-    The annotation may be:
-
-    1. built-in class (eg. <class 'str'>)
-    2. a class from typing (eg. typing.List<~T>[int])
-    3. own class
+            For which object (function / method) to get its return annotation.
 
     Returns:
-        The parsed return annotation.
+        The parsed return annotation or nothing (no annotation found).
 
     Example:
-        "str"  # or
         "List[str]"
     """
     return_annotation = str(inspect.signature(object_name).return_annotation)
@@ -101,7 +98,9 @@ def parse_return_annotation(object_name: Any) -> str:
             return BUILTIN_TYPE_REGEX.search(return_annotation).group(1)
 
         elif return_annotation.startswith("typing."):
-            return return_annotation.lstrip("typing.").replace("<~T>", "")
+            # 'typing.' may be found multiple times.
+
+            return return_annotation.replace("typing.", "").replace("<~T>", "")
 
         else:
             return return_annotation
@@ -111,19 +110,17 @@ ARGUMENT_REGEX = re.compile(r"^    ([\w_\*]+)")
 LANGUAGE_REGEX = re.compile(r"Example: \((\w+)\)")
 
 
-def markdown_docstring(docstring: str, object_name: Any=None):
+def markdown_docstring(object_name: Any) -> Union[str, None]:
     """
-    Read the given docstring and convert it to Markdown format.
+    Get the object docstring and convert it to Markdown format.
 
     Arguments:
-        docstring:
-            Module / class / method / function docstring for markdowning.
         object_name:
-            Function / method object for getting its parameters and
-            return annotation.
+            For which object to get its docstring.
 
     Returns:
-        Docstring in the Markdown format.
+        Docstring in the Markdown format or nothing (object doesn't have
+        docstring.)
 
     Example:
         This is a brief object description.
@@ -138,9 +135,16 @@ def markdown_docstring(docstring: str, object_name: Any=None):
             - Bar description.
 
         **Returns:**
-            True if something.
+
+        - bool:
+            - True if something.
     """
-    splited_docstring = docstring.split("\n")
+    docstring = inspect.getdoc(object_name) or ""
+
+    if not docstring:
+        return
+    else:
+        splited_docstring = docstring.split("\n")
 
     def bold_header(line_number: int, line: str):
         """
@@ -268,9 +272,7 @@ def markdown_docstring(docstring: str, object_name: Any=None):
         is_arguments_section = line if line == "Arguments:" else False
 
         if is_arguments_section:
-            parameters = collections.OrderedDict(
-                inspect.signature(object_name).parameters)
-            parsed_parameters = parse_parameters(parameters)
+            parsed_parameters = parse_parameters(object_name)
 
         for row in section:
             if row == "":  # End of `Arguments / Attributes / Raises` section.

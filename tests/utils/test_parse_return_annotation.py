@@ -21,5 +21,3 @@ def test_builtin_type_regex(type, result):
 ])
 def test_parse_return_annotation(object_name, result):
     assert parse_return_annotation(object_name) == result
-
-

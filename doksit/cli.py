@@ -1,5 +1,5 @@
 """
-Here are defined command line interfaces (CLI).
+Here are defined command line interfaces (CLI) as functions.
 """
 
 import click
@@ -21,17 +21,17 @@ def cli():
 @click.argument("package_directory", type=click.Path(exists=True))
 def api(package_directory: str):
     """
-    Command for generating the API Reference documentation for the given Python
-    package.
+    Generate the API Reference documentation for the given package.
 
-    If a user doesn't use stdout redirection, then the documentation will be
-    printed like man pages.
+    If stdout redirection isn't used, then the documentation will be printed
+    like man pages.
 
     Arguments:
-        package_dir:
-            Name of the Python package (relative path).
+        package_directory:
+            Relative path to the Python package directory.
     """
     api_documentation = ["# API Reference\n"]
+
     file_paths = find_files(package_directory)
     repository_url = get_repository_url()
 
@@ -39,11 +39,10 @@ def api(package_directory: str):
         file_metadata = read_file(file)
         file_documentation = get_documentation(file_metadata, repository_url)
 
-        if file_documentation:
+        if file_documentation is not None:
             api_documentation.append(file_documentation)
 
-    # Remove 2 blank lines at the end of last item in the 'api_documentation'.
+    # Remove a blank line at the end of last item of 'api_documentation'.
 
-    api_documentation[-1] = api_documentation[-1][:-2]
-
+    api_documentation[-1] = api_documentation[-1][:-1]
     click.echo_via_pager("\n".join(api_documentation))

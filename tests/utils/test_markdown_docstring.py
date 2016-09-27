@@ -1,4 +1,3 @@
-import collections
 import inspect
 
 import pytest
@@ -49,9 +48,7 @@ def test_markdown_class_docstring():
             - two
                 things
     """
-    class_docstring = inspect.getdoc(Foo)
-    markdowed_class_docstring = markdown_docstring(class_docstring)
-
+    markdowed_class_docstring = markdown_docstring(Foo)
     expected_output_draft = """
     This is a brief description.
 
@@ -110,10 +107,7 @@ def test_markdown_method_docstring():
         The 'Foo.__init__' method has parameters which are needed to get for
         the 'markdown_docstring' function.
     """
-    method_docstring = inspect.getdoc(Foo.__init__)
-    markdowned_method_docstring = \
-        markdown_docstring(method_docstring, Foo.__init__)
-
+    markdowned_method_docstring = markdown_docstring(Foo.__init__)
     expected_output_draft = """
     This is a brief description.
 
@@ -162,10 +156,7 @@ def test_markdown_another_method_docstring():
         Example: (markdown)
             # Heading
     """
-    method_docstring = inspect.getdoc(Foo.method)
-    markdowned_method_docstring = markdown_docstring(
-        method_docstring, Foo.method)
-
+    markdowned_method_docstring = markdown_docstring(Foo.method)
     expected_output_draft = """
     This is a brief description.
 
@@ -214,10 +205,7 @@ def test_markdown_function_docstring():
         The 'function' function has parameters which are needed to get for the
         'markdown_docstring' function.
     """
-    function_docstring = inspect.getdoc(function)
-    markdowned_function_docstring = \
-        markdown_docstring(function_docstring, function)
-
+    markdowned_function_docstring = markdown_docstring(function)
     expected_output_draft = """
     This is a brief description.
 
@@ -252,9 +240,7 @@ def test_markdown_another_function_docstring():
 
         This is a brief description.
     """
-    function_docstring = inspect.getdoc(another_function)
-    markdowned_function_docstring = markdown_docstring(function_docstring)
-
+    markdowned_function_docstring = markdown_docstring(another_function)
     expected_output_draft = """
     This is a brief online description.
     """

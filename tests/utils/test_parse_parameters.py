@@ -1,6 +1,3 @@
-import collections
-import inspect
-
 from doksit.utils.parsers import parse_parameters
 
 from tests.test_data.module import Foo, function
@@ -20,10 +17,7 @@ def test_parse_parameters_from_method():
     {"x": "x (str)", "y": "y (float, optional, default 1.0),
      "z": "z (List[int], optional, [])}
     """
-    method_parameters = inspect.signature(Foo.__init__).parameters
-    method_parameters = collections.OrderedDict(method_parameters)
-
-    output = parse_parameters(method_parameters)
+    output = parse_parameters(Foo.__init__)
 
     assert "self" not in output
     assert output["x"] == "x (str):"
@@ -40,9 +34,5 @@ def test_parse_parameters_from_function():
     but with no annotations. Therefore the function 'parse_paramaters' should
     return False value.
     """
-    function_parameters = inspect.signature(function).parameters
-    function_parameters = collections.OrderedDict(function_parameters)
-
-    output = parse_parameters(function_parameters)
-
+    output = parse_parameters(function)
     assert not output

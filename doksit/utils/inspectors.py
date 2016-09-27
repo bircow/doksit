@@ -6,22 +6,22 @@ import inspect
 import subprocess
 import re
 
-from typing import Any
+from typing import Any, Union
 
 REPOSITORY_URL_REGEX = re.compile(r"origin\t([\S]+) ")
 BRANCH_NAME_REGEX = re.compile(r"\* ([\S]+)\n")
 
 
-def get_repository_url():
+def get_repository_url() -> Union[str, None]:
     """
     Get absolute URL path to a Github repository including current branch
-    name.
+    name if a user is using Git & GitHub.
 
     Note:
         The URL is not correct yet, because it will be used as prefix.
 
     Returns:
-        The absolute URL path or None if Git is not used.
+        The absolute URL path or nothing if the Git is not used.
 
     Example:
         https://github.com/nait-aul/doksit/blob/master/
@@ -40,7 +40,7 @@ def get_repository_url():
     return repository_url + "/blob/" + branch_name + "/"
 
 
-def get_line_numbers(object_name: Any):
+def get_line_numbers(object_name: Any) -> str:
     """
     Find on which lines is the given object defined.
 
@@ -50,23 +50,22 @@ def get_line_numbers(object_name: Any):
 
     Note:
         There is a problem for getting line numbers for defined CLI commands
-        using `click` package (will raise `TypeError). Therefore it will be
+        using a `click` package (will raise `TypeError). Therefore it will be
         silenced and returned only `#`.
 
     Returns:
-        String range, where the object definition starts and ends or only `#`
+        Range, where the object definition starts and ends or only `#`
         if `TypeError` was raised.
 
     Example:
-        #L10-L25
+        #L10-L25  # or only '#'
     """
     try:
-        source_lines = inspect.getsourcelines(object_name)
+        source_lines, starting_line = inspect.getsourcelines(object_name)
     except TypeError:
         return "#"
 
-    starting_line = source_lines[1]
-    ending_line = starting_line + len(source_lines[0]) - 1
+    ending_line = starting_line + len(source_lines) - 1
 
     # Note:
     #
