@@ -56,8 +56,8 @@ def parse_parameters(object_name: Any) -> Union[dict, None]:
                 annotation = bad_annotation.replace("typing.", "").replace(
                     "<~T>", "")
 
-            output[parameter] = "{parameter} ({annotation}".format(
-                parameter=parameter, annotation=annotation)
+            output[parameter] = "{parameter} ({annotation}" \
+                .format(parameter=parameter, annotation=annotation)
 
             if default_value:
                 if default_value == "None":
@@ -110,7 +110,7 @@ ARGUMENT_REGEX = re.compile(r"^    ([\w_\*]+)")
 LANGUAGE_REGEX = re.compile(r"Example: \((\w+)\)")
 
 
-def markdown_docstring(object_name: Any) -> Union[str, None]:
+def get_docstring(object_name: Any) -> str:
     """
     Get the object docstring and convert it to Markdown format.
 
@@ -119,8 +119,8 @@ def markdown_docstring(object_name: Any) -> Union[str, None]:
             For which object to get its docstring.
 
     Returns:
-        Docstring in the Markdown format or nothing (object doesn't have
-        docstring.)
+        Docstring in the Markdown format or empty string (the object doesn't
+        have docstring.)
 
     Example:
         This is a brief object description.
@@ -139,10 +139,10 @@ def markdown_docstring(object_name: Any) -> Union[str, None]:
         - bool:
             - True if something.
     """
-    docstring = inspect.getdoc(object_name) or ""
+    docstring = inspect.getdoc(object_name)
 
     if not docstring:
-        return
+        return ""
     else:
         splited_docstring = docstring.split("\n")
 

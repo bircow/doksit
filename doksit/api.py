@@ -12,8 +12,8 @@ import re
 from typing import Any, List, Tuple, Union
 
 from doksit.utils.data_types import MyOrderedDict
-from doksit.utils.inspectors import get_line_numbers
-from doksit.utils.parsers import markdown_docstring
+from doksit.utils.inspectors import get_source_code_url
+from doksit.utils.parsers import get_docstring
 
 
 def find_files(package_path: str) -> List[str]:
@@ -89,7 +89,7 @@ def read_file(file_path: str) -> Tuple[str, MyOrderedDict, List[str]]:
             Relative path to a Python file.
 
     Returns:
-        The relative file path, classess with methods and list of functions.
+        The relative file path, classes with methods and list of functions.
 
     Example:
         (
@@ -123,6 +123,7 @@ def read_file(file_path: str) -> Tuple[str, MyOrderedDict, List[str]]:
 
                 if not function_name.startswith("_"):
                     functions.append(function_name)
+
             else:
                 previous_line = file_content[line_number - 1].lstrip()
 
@@ -135,20 +136,152 @@ def read_file(file_path: str) -> Tuple[str, MyOrderedDict, List[str]]:
     return file_path, classes, functions
 
 
-def _classes_documentation():
-    pass
+def _module_documentation(module: Any) -> str:
+    """
+    Get documentation for the given module.
+
+    Arguments:
+        module:
+            Module object.
+
+    Returns:
+        The module documentation.
+
+    Example: (markdown)
+        ## package_name.module_name
+
+        [source](https://github.com/nait-aul/doksit/blob/master/doksit/api.py)
+
+        This is a module docstring.
+    """
+    module_name = module.__name__
+    module_documentation = "## {module_name}\n\n" \
+        .format(module_name=module_name)
+    module_documentation += get_source_code_url(module)
+    module_documentation += get_docstring(module)
+
+    return module_documentation
 
 
-def _method_documentation():
-    pass
+def _classes_documentation(module: Any, classes: MyOrderedDict) -> str:
+    """
+    Get documentation for the given classes.
+
+    Arguments:
+        module:
+            Module object
+        classes:
+            Class names with method names.
+
+    Returns:
+        The classes documentation.
+
+    Example: (markdown)
+        ### class class_name_a
+
+        [source](https://github.com/.../api.py#L1-L10)
+
+        This is a class docstring.
+
+        #### method method_name
+
+        ...
+
+        ### class class_name_b
+
+        ...
+    """
+    classes_documentation = ""
+
+    for class_name in classes:
+        classes_documentation += "\n\n### class {class_name}\n\n" \
+            .format(class_name=class_name)
+
+        class_object = getattr(module, class_name)
+
+        classes_documentation += get_source_code_url(module, class_object)
+        classes_documentation += get_docstring(class_object)
+
+        for method_name in classes[class_name]:
+            method_object = getattr(class_object, method_name)
+
+            classes_documentation += \
+                _method_documentation(module, method_object)
+
+    return classes_documentation
 
 
-def _functions_documentation(functions):
-    pass
+def _method_documentation(module: Any, method: Any) -> str:
+    """
+    Get documentation for the given method.
+
+    Arguments:
+        module:
+            Module object.
+        method:
+            Method object.
+
+    Returns:
+        The method documentation.
+
+    Example: (markdown)
+        #### method method_name
+
+        [source](https://github.com/.../api.py#L4-L10)
+
+        This is a method docstring.
+    """
+    method_name = method.__name__
+
+    if method_name == "__init__":
+        method_name = r"\_\_init\_\_"
+
+    method_documentation = "\n\n#### method {method_name}\n\n" \
+        .format(method_name=method_name)
+    method_documentation += get_source_code_url(module, method)
+    method_documentation += get_docstring(method)
+
+    return method_documentation
 
 
-def get_documentation(file_metadata: tuple, repository_url: str=None) \
-        -> Union[str, None]:
+def _functions_documentation(module: Any, functions: List[str]) \
+        -> str:
+    """
+    Get documentation for the given functions.
+
+    Arguments:
+        module:
+            Module object
+        classes:
+            List of function names.
+
+    Returns:
+        The classes documentation.
+
+    Example: (markdown)
+        ### function function_name_a
+
+        [source](https://github.com/.../api.py#L12-L16)
+
+        This is a function docstring.
+
+        ### function function_name_b
+    """
+    functions_documentation = ""
+
+    for function_name in functions:
+        functions_documentation += "\n\n### function {function_name}\n\n" \
+            .format(function_name=function_name)
+
+        function_object = getattr(module, function_name)
+
+        functions_documentation += get_source_code_url(module, function_object)
+        functions_documentation += get_docstring(function_object)
+
+    return functions_documentation
+
+
+def get_documentation(file_metadata: tuple) -> Union[str, None]:
     """
     Join all objects docstrings into one big documentation for the given file.
 
@@ -158,12 +291,10 @@ def get_documentation(file_metadata: tuple, repository_url: str=None) \
     Arguments:
         file_metadata:
             Returned data from the 'doksit.api.read_file' function.
-        repository_url:
-            URL prefix to the GitHub repository.
 
     Returns:
         The documentation for the given file in Markdown format or nothing
-        (the file is empty).
+        (the Python file is likely empty).
 
     Example: (markdown)
         ## package_name.module_name
@@ -194,89 +325,11 @@ def get_documentation(file_metadata: tuple, repository_url: str=None) \
         return
 
     module_path = file_path.replace("/", ".").rstrip(".py")
-    documentation = "## {module_path}\n\n".format(module_path=module_path)
-
-    def insert_source_url(object_name: Any=None, is_module: bool=False):
-        """
-        Insert into documentation below each objects their link to source code.
-
-        This works only for those who are using Git and GitHub, otherwise
-        a blank line will be inserted.
-
-        Arguments:
-            object_name (Any, optional, default None):
-                Reference to an object (for getting the object location).
-            is_module (bool, optional, default False):
-                Whether the source link will be for module only or for objects
-                inside it.
-
-        Example: (markdown)
-            ([source](https://github.com/.../blob/master/doksit/api.py))
-
-            # or for classes / methods / functions (codes will be highlighted)
-
-            ([source](.../api.py#L1-L10))
-        """
-        nonlocal documentation
-
-        if repository_url:
-            nonlocal file_path
-            source_url = "([source]({repository_url}{file_path}{lines}))\n\n"
-
-            if is_module:
-                documentation += source_url.format(**locals(), lines="")
-            else:
-                documentation += source_url.format(
-                    **locals(), lines=get_line_numbers(object_name))
-
-    def insert_object_documentation(object_name: Any, is_function=False,
-                                    is_module=False):
-        """
-        Insert into documentation a docstring for the given object + its
-        link to source code.
-
-        Arguments:
-            object_name (Any):
-                For which object to get its docstring.
-            is_function (bool, optional, default False):
-                Whether the object is a function or method.
-            is_module (bool, optional, default False)
-        """
-        if is_module:
-            insert_source_url(object_name, is_module=True)
-        else:
-            insert_source_url(object_name)
-
-        object_docstring = markdown_docstring(object_name)
-
-        if object_docstring:
-            nonlocal documentation
-            documentation += object_docstring + "\n\n"
-
     imported_module = importlib.import_module(module_path)
-    insert_object_documentation(imported_module, is_module=True)
 
-    for class_name in classes:
-        documentation += "### class {class_name}\n\n".format(**locals())
+    documentation = ""
+    documentation += _module_documentation(imported_module)
+    documentation += _classes_documentation(imported_module, classes)
+    documentation += _functions_documentation(imported_module, functions)
 
-        imported_class = getattr(imported_module, class_name)
-        insert_object_documentation(imported_class)
-
-        for method_name in classes[class_name]:
-            method_object = getattr(imported_class, method_name)
-
-            if method_name == "__init__":
-                method_name = r"\_\_init\_\_"
-
-            documentation += "#### method {method_name}\n\n".format(
-                **locals())
-            insert_object_documentation(method_object, is_function=True)
-
-    for function_name in functions:
-        documentation += "### function {function_name}\n\n".format(
-            **locals())
-
-        imported_function = getattr(imported_module, function_name)
-        insert_object_documentation(imported_function, is_function=True)
-
-    return documentation[:-1]  # Remove one blank line at the end of doc.
+    return documentation

@@ -3,7 +3,7 @@ import inspect
 import pytest
 
 from doksit.utils.parsers import (
-    ARGUMENT_REGEX, LANGUAGE_REGEX, markdown_docstring)
+    ARGUMENT_REGEX, LANGUAGE_REGEX, get_docstring)
 
 from tests.test_data.module import Foo, function, another_function
 
@@ -48,7 +48,7 @@ def test_markdown_class_docstring():
             - two
                 things
     """
-    markdowed_class_docstring = markdown_docstring(Foo)
+    markdowed_class_docstring = get_docstring(Foo)
     expected_output_draft = """
     This is a brief description.
 
@@ -105,9 +105,9 @@ def test_markdown_method_docstring():
 
     Note:
         The 'Foo.__init__' method has parameters which are needed to get for
-        the 'markdown_docstring' function.
+        the 'get_docstring' function.
     """
-    markdowned_method_docstring = markdown_docstring(Foo.__init__)
+    markdowned_method_docstring = get_docstring(Foo.__init__)
     expected_output_draft = """
     This is a brief description.
 
@@ -156,7 +156,7 @@ def test_markdown_another_method_docstring():
         Example: (markdown)
             # Heading
     """
-    markdowned_method_docstring = markdown_docstring(Foo.method)
+    markdowned_method_docstring = get_docstring(Foo.method)
     expected_output_draft = """
     This is a brief description.
 
@@ -203,9 +203,9 @@ def test_markdown_function_docstring():
 
     Note:
         The 'function' function has parameters which are needed to get for the
-        'markdown_docstring' function.
+        'get_docstring' function.
     """
-    markdowned_function_docstring = markdown_docstring(function)
+    markdowned_function_docstring = get_docstring(function)
     expected_output_draft = """
     This is a brief description.
 
@@ -238,11 +238,11 @@ def test_markdown_another_function_docstring():
     """
     Sample function docstring from the 'another_function' function:
 
-        This is a brief description.
+        This is a brief oneline description.
     """
-    markdowned_function_docstring = markdown_docstring(another_function)
+    markdowned_function_docstring = get_docstring(another_function)
     expected_output_draft = """
-    This is a brief online description.
+    This is a brief oneline description.
     """
 
     expected_output = inspect.cleandoc(expected_output_draft)

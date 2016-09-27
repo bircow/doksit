@@ -127,7 +127,7 @@ def function(n) -> int:
 
 
 def another_function() -> Union[str, int]:
-    """This is a brief online description."""
+    """This is a brief oneline description."""
     pass
 
 

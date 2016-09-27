@@ -1,13 +1,10 @@
 import sys
 
-from doksit.cli import get_documentation, read_file
-from doksit.utils.inspectors import get_repository_url
+from doksit.api import get_documentation, read_file
 
 # IMPORTANT:
 #
 # Add current directory to the Python sys path, othwerise this test fails.
-# I don't know why it's buggy. With normal script / Python interpret / unittest
-# it's working but with pytest no...
 
 sys.path.append(".")
 
@@ -17,8 +14,7 @@ def test_get_documentation_for_sample_file():
     Sample file (module) is 'test_data.module'.
     """
     file_metadata = read_file("test_data/module.py")
-    repository_url = get_repository_url()
-    file_documentation = get_documentation(file_metadata, repository_url)
+    file_documentation = get_documentation(file_metadata)
 
     assert "test_data.module" in file_documentation
     assert "This is a module docstring, right?" in file_documentation
@@ -26,9 +22,9 @@ def test_get_documentation_for_sample_file():
     assert "method method" in file_documentation
     assert "function another_function" in file_documentation
 
-    # Note:
+    # NOTE:
     #
-    # below is invalid URL because missing parent folder 'tests' in it
+    # Below is invalid URL because missing parent folder 'tests' in it
     # (test is run inside that folder), but result is expected (right).
 
     assert "https://github.com/nait-aul/doksit/blob/master/" \
