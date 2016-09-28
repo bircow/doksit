@@ -30,8 +30,8 @@ except ImportError:
 
 setup(
     name="doksit",
-    version="0.1.0",
-    description="Documentation generator with output to Markdown.",
+    version="0.2.0",
+    description="Future all-in-one documentation tool for Python packages.",
     long_description=long_description,
     author="Nait Aul",
     author_email="nait-aul@protonmail.com",
@@ -43,7 +43,7 @@ setup(
     ),
     entry_points={
         "console_scripts": [
-            "doksit = doksit.main:main"
+            "doksit = doksit.cli:cli"
         ]
     },
 

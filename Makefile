@@ -6,7 +6,6 @@ clean:
 install:
 	pip install -e .
 	pip install -r requirements-dev.txt
-	rm -rf doksit.egg-info/
 
 release:
 	python setup.py register
