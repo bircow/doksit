@@ -215,7 +215,7 @@ def _markdown_arguments_section(line_number: int, docstring: List[str],
             if is_arguments_section and parsed_parameters is not None:
                 argument_name = ARGUMENT_REGEX.search(line).group(1)
 
-                if argument_name.startswith("*"): # Eg, *args or **kwargs
+                if argument_name.startswith("*"):  # Eg, *args or **kwargs
                     argument_name = argument_name.lstrip("*")
 
                 docstring[number] = "- " + parsed_parameters[argument_name]
