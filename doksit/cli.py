@@ -29,7 +29,7 @@ def api(package_directory: str):
         package_directory:
             Relative path to the Python package directory.
     """
-    api_documentation = ["# API Reference\n"]
+    api_documentation = ["# API Reference"]
     file_paths = find_files(package_directory)
 
     for file in file_paths:

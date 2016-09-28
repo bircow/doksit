@@ -76,9 +76,14 @@ class Foo:
         pass
 
     @staticmethod
-    def static_method():
+    def static_method() -> str:
         """
         This is a static method.
+
+        Returns:
+            str:
+                Return description
+                over two lines.
         """
         pass
 
@@ -119,9 +124,9 @@ def function(n) -> int:
         Integer.
 
     Example:
-        This is an example code.
+        # This is an example code.
 
-        This part is after line break.
+        # This part is after line break.
     """
     pass
 

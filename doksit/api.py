@@ -13,7 +13,7 @@ from typing import Any, List, Tuple, Union
 
 from doksit.utils.data_types import MyOrderedDict
 from doksit.utils.inspectors import get_source_code_url
-from doksit.utils.parsers import get_docstring
+from doksit.utils.parsers import get_markdowned_docstring
 
 
 def find_files(package_path: str) -> List[str]:
@@ -155,10 +155,10 @@ def _module_documentation(module: Any) -> str:
         This is a module docstring.
     """
     module_name = module.__name__
-    module_documentation = "## {module_name}\n\n" \
+    module_documentation = "\n## {module_name}\n\n" \
         .format(module_name=module_name)
     module_documentation += get_source_code_url(module)
-    module_documentation += get_docstring(module)
+    module_documentation += get_markdowned_docstring(module)
 
     return module_documentation
 
@@ -200,7 +200,7 @@ def _classes_documentation(module: Any, classes: MyOrderedDict) -> str:
         class_object = getattr(module, class_name)
 
         classes_documentation += get_source_code_url(module, class_object)
-        classes_documentation += get_docstring(class_object)
+        classes_documentation += get_markdowned_docstring(class_object)
 
         for method_name in classes[class_name]:
             method_object = getattr(class_object, method_name)
@@ -239,7 +239,7 @@ def _method_documentation(module: Any, method: Any) -> str:
     method_documentation = "\n\n#### method {method_name}\n\n" \
         .format(method_name=method_name)
     method_documentation += get_source_code_url(module, method)
-    method_documentation += get_docstring(method)
+    method_documentation += get_markdowned_docstring(method)
 
     return method_documentation
 
@@ -276,7 +276,7 @@ def _functions_documentation(module: Any, functions: List[str]) \
         function_object = getattr(module, function_name)
 
         functions_documentation += get_source_code_url(module, function_object)
-        functions_documentation += get_docstring(function_object)
+        functions_documentation += get_markdowned_docstring(function_object)
 
     return functions_documentation
 

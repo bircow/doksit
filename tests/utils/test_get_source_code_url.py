@@ -25,10 +25,10 @@ def test_get_url_to_github_repository():
 
 
 def test_get_object_line_numbers():
-    assert _get_line_numbers(Foo) == "#L12-L101"
-    assert _get_line_numbers(function) == "#L108-L126"
+    assert _get_line_numbers(Foo) == "#L12-L106"
+    assert _get_line_numbers(function) == "#L113-L131"
 
 
 def test_get_source_code_url():
     assert "tests/test_data/module.py" in get_source_code_url(module)
-    assert "module.py#L12-L101" in get_source_code_url(module, module.Foo)
+    assert "module.py#L12-L106" in get_source_code_url(module, module.Foo)
