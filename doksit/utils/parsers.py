@@ -446,15 +446,12 @@ def _markdown_raises_section(line_number: int, docstring: List[str]) \
             docstring[number] = line.replace("            ", "       ")
 
         elif line.startswith("        "):
-            # Attention, may be ordered (numbered) error description.
+            # Attention, may be also ordered (numbered) error description.
 
-            try:
-                int(line.lstrip(" ")[0])
-
+            if line.lstrip(" ")[0].isdigit():
                 docstring[number] = line.replace("        ", "    ")
+
                 continue
-            except ValueError:
-                pass
 
             if is_first_line_description:
                 docstring[number] = line.replace("        ", "    - ")
