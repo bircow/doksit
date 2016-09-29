@@ -1,34 +1,53 @@
 """
 Here are defined command line interfaces (CLI) as functions.
+
+Note:
+    The functions docstrings have very short documentation, because they're
+    taken as CLI description. Therefore the rest is written in comments.
+
+Warning:
+    The source code links below lead to a module file only and not direct
+    to specific line number. The reason is that is not possible to locate
+    CLI functions using `click` package (bug).
 """
 
 import click
 
-from doksit.api import find_files, get_documentation, read_file
+from doksit.api import (
+    find_files, get_documentation, read_file, color_documentation)
 
 
 @click.group()
 def cli():
     """
-    This function only initialize `doksit` CLI. Real commands (subcommands)
-    are defined below.
+    Use one of the subcommands below.
     """
+    #
+    # This function only initialize `doksit` CLI. Real commands (subcommands)
+    # are defined below.
+    #
     pass
 
 
 @cli.command()
+@click.option("--colorful", is_flag=True,
+              help="Color the documentation output.")
 @click.argument("package_directory", type=click.Path(exists=True))
-def api(package_directory: str):
+def api(package_directory: str, colorful: bool):
     """
-    Generate the API Reference documentation for the given package.
-
-    If stdout redirection isn't used, then the documentation will be printed
-    like man pages.
-
-    Arguments:
-        package_directory:
-            Relative path to the Python package directory.
+    Generate the API Reference documentation.
     """
+    #
+    # If a stdout redirection isn't used, then the documentation will be
+    # printed like man pages.
+    #
+    # Arguments:
+    #     package_directory:
+    #         Relative path to the Python package directory.
+    #     colorful:
+    #         Whether to color the documentation output or not
+    #
+
     api_documentation = ["# API Reference"]
     file_paths = find_files(package_directory)
 
@@ -39,4 +58,8 @@ def api(package_directory: str):
         if file_documentation is not None:
             api_documentation.append(file_documentation)
 
-    click.echo_via_pager("\n".join(api_documentation))
+    if colorful:
+        colored_documentation = color_documentation(api_documentation)
+        click.echo_via_pager(colored_documentation)
+    else:
+        click.echo_via_pager("\n".join(api_documentation))
