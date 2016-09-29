@@ -132,6 +132,11 @@ def _bold_header(header: str) -> str:
         "Yields:"
     )
 
+    # Headers without the new line at the end are:
+    #
+    # "Note:",
+    # "Warning:"
+
     if header in headers_with_new_line:
         bold_header += "\n"
 
@@ -690,7 +695,7 @@ def get_markdowned_docstring(object_name: Any) -> str:
 
         This is a long paragraph.
 
-        **Arguments**:
+        **Arguments:**
 
         - foo (str):
             - Foo description.
