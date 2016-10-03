@@ -3,8 +3,8 @@ import sys
 from setuptools import setup, find_packages
 from setuptools.command.test import test as TestCommand
 
-if sys.version_info < (3, 5, 0):
-    sys.exit("ERROR: You need Python 3.5 or later to use doksit.")
+if sys.version_info < (3, 3, 0):
+    sys.exit("ERROR: You need Python 3.3 or later to use doksit.")
 
 
 class PyTest(TestCommand):
@@ -28,6 +28,13 @@ try:
 except ImportError:
     long_description = ""
 
+install_requires = [
+    "click"
+]
+
+if sys.version_info < (3, 5, 0):
+    install_requires.append("typing")
+
 setup(
     name="doksit",
     version="0.2.0",
@@ -38,6 +45,7 @@ setup(
     url="https://github.com/nait-aul/doksit",
     license="MIT License",
 
+    install_requires=install_requires,
     packages=find_packages(
         exclude=["*.tests", "*.tests.*", "tests.*", "tests"]
     ),
