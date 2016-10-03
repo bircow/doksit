@@ -88,7 +88,7 @@ def get_source_code_url(module: Any, object_name: Any=None) -> str:
         The full URL path or empty string if a user isn't using Git & GitHub.
 
     Example:
-        ""
+        "https://github.com/nait-aul/doksit/blob/master/doksit/api.py#L1-L10"
     """
     module_path = module.__name__.replace(".", "/") + ".py"
     repository_url = _get_repository_url()
