@@ -5,10 +5,17 @@
 # Python
 
 __pycache__/
-build/
-dist/
-*.egg-info/
 
 # Pytest
 
 .cache/
+
+# Setuptools
+
+build/
+dist/
+*.egg-info/
+
+# Tox
+
+.tox/
