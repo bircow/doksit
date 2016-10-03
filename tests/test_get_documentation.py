@@ -25,15 +25,8 @@ def test_module_documentation():
             Hello World!
     """
     module_documentation = _module_documentation(module)
-    module_url = \
-        "https://github.com/nait-aul/doksit/blob/master/" \
-        "tests/test_data/module.py"
 
     expected_output_draft = """
-    ## tests.test_data.module
-
-    [source]({module_url})
-
     This is a module docstring, right?
 
     Example:
@@ -42,9 +35,11 @@ def test_module_documentation():
     >>> print("Hello World!)
     Hello World!
     ```
-    """.format(module_url=module_url)
-
+    """
     expected_output = inspect.cleandoc(expected_output_draft)
+
+    assert "## tests.test_data.module" in module_documentation
+    assert "tests/test_data/module.py" in module_documentation
     assert expected_output in module_documentation
 
 
@@ -73,17 +68,9 @@ def test_classes_documentation():
     """
     file_metadata = read_file("test_data/module.py")
     classes = file_metadata[1]
-
     classes_documentation = _classes_documentation(module, classes)
-    class_foo_url = \
-        "https://github.com/nait-aul/doksit/blob/master/" \
-        "tests/test_data/module.py#L12-L106"
 
     expected_output_draft = """
-    ### class Foo
-
-    [source]({class_foo_url})
-
     This is a brief description.
 
     This is a long description.
@@ -104,9 +91,11 @@ def test_classes_documentation():
     - [ ] one thing
     - [ ] two
           things
-    """.format(class_foo_url=class_foo_url)
-
+    """
     expected_output = inspect.cleandoc(expected_output_draft)
+
+    assert "### class Foo" in classes_documentation
+    assert "tests/test_data/module.py#L12-L106" in classes_documentation
     assert expected_output in classes_documentation
 
 
@@ -138,15 +127,8 @@ def test_method_documentation():
                 3. Invalid argument for 'z'.
     """
     method_documentation = _method_documentation(module, module.Foo.__init__)
-    method_url = \
-        "https://github.com/nait-aul/doksit/blob/master/" \
-        "tests/test_data/module.py#L34-L59"
 
     expected_output_draft = """
-    #### method \_\_init\_\_
-
-    [source]({method_url})
-
     This is a brief description.
 
     **Arguments:**
@@ -171,9 +153,11 @@ def test_method_documentation():
            'x'.
         2. Invalid argument for 'y'.
         3. Invalid argument for 'z'.
-    """.format(method_url=method_url)
-
+    """
     expected_output = inspect.cleandoc(expected_output_draft)
+
+    assert "#### method \_\_init\_\_" in method_documentation
+    assert "tests/test_data/module.py#L34-L59" in method_documentation
     assert expected_output in method_documentation
 
 
@@ -185,21 +169,13 @@ def test_functions_documentation():
     """
     file_metadata = read_file("test_data/module.py")
     functions = file_metadata[2]
-
     functions_documentation = _functions_documentation(module, functions)
-    function_another_function_url = \
-        "https://github.com/nait-aul/doksit/blob/master/" \
-        "tests/test_data/module.py#L134-L136"
 
-    expected_output_draft = """
-    ### function another_function
-
-    [source]({function_another_function_url})
-
-    This is a brief oneline description.
-    """.format(function_another_function_url=function_another_function_url)
-
+    expected_output_draft = """This is a brief oneline description."""
     expected_output = inspect.cleandoc(expected_output_draft)
+
+    assert "### function another_function" in functions_documentation
+    assert "tests/test_data/module.py#L134-L136" in functions_documentation
     assert expected_output in functions_documentation
 
 
@@ -215,15 +191,8 @@ def test_get_documentation_for_sample_file():
     assert "class Foo" in file_documentation
     assert "method method" in file_documentation
     assert "function another_function" in file_documentation
-
-    # NOTE:
-    #
-    # Below is invalid URL because missing parent folder 'tests' in it
-    # (test is run inside that folder), but result is expected (right).
-
-    assert "https://github.com/nait-aul/doksit/blob/master/" \
-        "test_data/module.py#L12-L106" in file_documentation
-
+    assert "https://github.com/nait-aul/doksit" in file_documentation
+    assert "test_data/module.py#L12-L106" in file_documentation
     assert "method _protected" not in file_documentation
     assert "method __private" not in file_documentation
     assert "method __magic__" not in file_documentation
