@@ -3,3 +3,4 @@ flake8==3.0.4
 pylint==1.6.4
 pypandoc==1.2.0
 pytest==3.0.2
+tox==2.3.1
