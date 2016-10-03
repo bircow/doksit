@@ -21,7 +21,7 @@ def test_branch_name_regex():
 
 
 def test_get_url_to_github_repository():
-    assert "doksit/" in _get_repository_url()
+    assert "doksit" in _get_repository_url()
 
 
 def test_get_object_line_numbers():
