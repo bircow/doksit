@@ -10,6 +10,8 @@ Warning:
     to specific line number. The reason is that is not possible to locate
     CLI functions using `click` package (bug).
 """
+import os
+import subprocess
 
 import click
 
@@ -30,10 +32,10 @@ def cli():
 
 
 @cli.command()
-@click.option("--colorful", is_flag=True,
+@click.option("--colored", is_flag=True,
               help="Color the documentation output.")
 @click.argument("package_directory", type=click.Path(exists=True))
-def api(package_directory: str, colorful: bool):
+def api(package_directory: str, colored: bool):
     """
     Generate the API Reference documentation.
     """
@@ -44,7 +46,7 @@ def api(package_directory: str, colorful: bool):
     # Arguments:
     #     package_directory:
     #         Relative path to the Python package directory.
-    #     colorful:
+    #     colored:
     #         Whether to color the documentation output or not
     #
 
@@ -58,8 +60,13 @@ def api(package_directory: str, colorful: bool):
         if file_documentation is not None:
             api_documentation.append(file_documentation)
 
-    if colorful:
+    if colored:
         colored_documentation = color_documentation(api_documentation)
-        click.echo_via_pager(colored_documentation)
+
+        read, write = os.pipe()
+        os.write(write, colored_documentation.encode("ascii"))
+        os.close(write)
+
+        subprocess.check_call(["less", "-r"], stdin=read)
     else:
         click.echo_via_pager("\n".join(api_documentation))
