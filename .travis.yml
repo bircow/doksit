@@ -8,4 +8,5 @@ before_install:
 install:
   - pip install tox-travis
 script:
+  - git branch
   - tox
