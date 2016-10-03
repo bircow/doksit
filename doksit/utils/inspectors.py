@@ -9,7 +9,7 @@ import re
 from typing import Any, Union
 
 REPOSITORY_URL_REGEX = re.compile(r"origin\t([\S]+) ")
-BRANCH_NAME_REGEX = re.compile(r"\* ([\S]+)\n")
+BRANCH_NAME_REGEX = re.compile(r"\* (.+)\n")
 
 
 def _get_repository_url() -> Union[str, None]:
