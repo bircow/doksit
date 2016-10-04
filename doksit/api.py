@@ -35,36 +35,15 @@ def find_files(package_path: str) -> List[str]:
         ["package/module.py", "package/subpackage/module.py"]
     """
     file_paths = []
+    ignored_files = ["__init__.py", "__main__.py"]
 
-    def get_file_paths(directory_path: str):
-        """
-        Get all Python files in the given directory and result appends to
-        the nonlocal variable `file_paths`.
-
-        Arguments:
-            directory_path (str):
-                Path to the given directory.
-        """
-        scanned_directory = os.scandir(directory_path)
-
-        found_files = []
-        found_subdirectories = []
-
-        for entry in scanned_directory:
-            if entry.is_dir() and entry.name != "__pycache__":
-                found_subdirectories.append(entry.path)
-
-            elif entry.is_file() and entry.name.endswith(".py") \
-                    and entry.name not in ["__init__.py", "__main__.py"]:
-                found_files.append(entry.path)
-
-        nonlocal file_paths
-        file_paths += sorted(found_files)
-
-        for subdirectory in sorted(found_subdirectories):
-            get_file_paths(subdirectory)
-
-    get_file_paths(package_path)
+    for root, _, files in os.walk(package_path):
+        if os.path.basename(root) == "__pycache__":
+            continue
+        else:
+            for file in files:
+                if file.endswith(".py") and file not in ignored_files:
+                    file_paths.append(os.path.join(root, file))
 
     return file_paths
 
