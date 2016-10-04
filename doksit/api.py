@@ -38,9 +38,7 @@ def find_files(package_path: str) -> List[str]:
     ignored_files = ["__init__.py", "__main__.py"]
 
     for root, _, files in os.walk(package_path):
-        if os.path.basename(root) == "__pycache__":
-            continue
-        else:
+        if os.path.basename(root) != "__pycache__":
             for file in files:
                 if file.endswith(".py") and file not in ignored_files:
                     file_paths.append(os.path.join(root, file))
