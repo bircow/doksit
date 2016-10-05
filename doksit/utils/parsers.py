@@ -687,7 +687,7 @@ def get_markdowned_docstring(object_name: Any) -> str:
         The markdowned docstring or empty string (the object
         doesn't have any docstring.)
 
-    Example:
+    Example: (markdown)
         This is a brief object description.
 
         This is a long paragraph.
