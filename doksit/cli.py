@@ -47,7 +47,7 @@ def api(package_directory: str, colored: bool):
     #     package_directory:
     #         Relative path to the Python package directory.
     #     colored:
-    #         Whether to color the documentation output or not
+    #         Whether to color the documentation output or not.
     #
 
     api_documentation = ["# API Reference"]
@@ -67,6 +67,6 @@ def api(package_directory: str, colored: bool):
         os.write(write, colored_documentation.encode("ascii"))
         os.close(write)
 
-        subprocess.check_call(["less", "-r"], stdin=read)
+        subprocess.call(["less", "-r"], stdin=read)
     else:
         click.echo_via_pager("\n".join(api_documentation))

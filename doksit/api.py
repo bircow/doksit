@@ -317,8 +317,7 @@ HEADINGS = (
 )
 
 START = "\x1b["
-EOL = "\x1b[K"
-RESET = "\x1b[0m"
+END = "\x1b[K\x1b[0m"
 
 
 def _color_heading(line: str) -> str:
@@ -347,16 +346,16 @@ def _color_heading(line: str) -> str:
         "\x1b[34;40;1m## doksit.api\x1b[K\x1b[0m"
     """
     if line.startswith(HEADINGS[0]):
-        return START + "34;40;1m" + line + EOL + RESET
+        return START + "34;40;1m" + line + END
 
     elif line.startswith(HEADINGS[1]):
-        return START + "32;40;1m" + line + EOL + RESET
+        return START + "32;40;1m" + line + END
 
     elif line.startswith(HEADINGS[2]):
-        return START + "33;40;1m" + line + EOL + RESET
+        return START + "33;40;1m" + line + END
 
     elif line.startswith(HEADINGS[3]):
-        return START + "36;40;1m" + line + EOL + RESET
+        return START + "36;40;1m" + line + END
 
 
 BOLD_HEADERS = (
@@ -400,13 +399,9 @@ def _color_header(line: str) -> str:
     line = line.strip("*")
 
     if line in ["Warning:"]:
-        return START + "31;40;1m" + line + "\x1b[21m\x1b[97m" + EOL
+        return START + "31;40;1m" + line + END
     else:
-        return START + "97;40;1m" + line + "\x1b[21m" + EOL
-
-    # If there was also `+ RESET` at the of the previous lines, then the
-    # `Note:` and `Warning:` section would have default terminal background
-    # color instead of desired black color.
+        return START + "97;40;1m" + line + END
 
 
 def _color_module_documentation(documentation: str) -> str:
@@ -441,16 +436,26 @@ def _color_module_documentation(documentation: str) -> str:
         elif line in BOLD_HEADERS and not is_example_section:
             split_documentation[line_number] = _color_header(line)
 
-        elif line == "```":
-            is_example_section = False
-
         elif line.startswith("```"):
-            is_example_section = True
+            if is_example_section:
+                is_example_section = False
+            else:
+                is_example_section = True
 
-            split_documentation[line_number] = START + "30;107m" + line + EOL
+            split_documentation[line_number] = START + "30;107m" + line + END
 
-        elif line == "" and not is_example_section:
-            split_documentation[line_number] = START + "97;40m" + EOL
+        elif line == "":
+            if is_example_section:
+                split_documentation[line_number] = START + "30;107m" + END
+            else:
+                split_documentation[line_number] = START + "97;40m" + END
+        else:
+            if is_example_section:
+                split_documentation[line_number] = \
+                    START + "30;107m" + line + END
+            else:
+                split_documentation[line_number] = \
+                    START + "97;40m" + line + END
 
     return "\n".join(split_documentation)
 
@@ -490,10 +495,10 @@ def color_documentation(documentation: List[str]) -> str:
             "..."
         ]
     """
-    documentation[0] = START + "31;40;1m" + documentation[0] + EOL + RESET
+    documentation[0] = START + "31;40;1m" + documentation[0] + END
     modules_documentation = documentation[1:]
 
     for index, module in enumerate(modules_documentation, start=1):
         documentation[index] = _color_module_documentation(module)
 
-    return "\n".join(documentation[:]) + RESET
+    return "\n".join(documentation[:])
