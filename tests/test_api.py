@@ -10,10 +10,21 @@ from doksit.cli import api
 
 sys.path.append(".")
 
+RUNNER = CliRunner()
+
 
 def test_api_subcommand():
-    runner = CliRunner()
-    result = runner.invoke(api, ["test_data/"])
+    result = RUNNER.invoke(api, ["test_data/"])
 
     assert result.exit_code == 0
     assert "# API Reference" in result.output
+
+
+def test_api_subcommand_with_colored_option():
+    """
+    Don't assert a content in the result.output, because it executes
+    subprocess call.
+    """
+    result = RUNNER.invoke(api, ["test_data/", "--colored"])
+
+    assert result.exit_code == 0
