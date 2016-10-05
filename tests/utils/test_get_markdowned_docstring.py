@@ -23,7 +23,7 @@ def test_bold_header():
     "    foo (str):",
     "    foo (str, optional, default 'Foo')"
 ])
-def test_ARGUMENT_REGEX_for_the_arguments_section(line):
+def test_regex_for_arguments_in_arguments_section(line):
     assert ARGUMENT_REGEX.search(line).group(1) == "foo"
 
 
@@ -102,7 +102,7 @@ def test_attributes_section():
     "Example: (markdown)",
     "Example: (bash)"
 ])
-def test_programming_LANGUAGE_REGEX_for_the_example_section(line):
+def test_regex_for_language_in_example_section(line):
     assert LANGUAGE_REGEX.search(line).group(1) in ["markdown", "bash"]
 
 
