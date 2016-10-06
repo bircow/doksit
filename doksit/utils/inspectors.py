@@ -18,7 +18,7 @@ def _get_repository_url() -> Union[str, None]:
     name if a user is using Git & GitHub.
 
     Note:
-        The URL is not correct yet, because it will be used as prefix.
+        The URL is not correct yet, because it will be used as a prefix.
 
     Returns:
         The absolute URL path or nothing if the Git is not used.
@@ -35,6 +35,14 @@ def _get_repository_url() -> Union[str, None]:
         return
 
     repository_url = REPOSITORY_URL_REGEX.search(remote_repository).group(1)
+
+    # Repository cloners may have in the repository url suffix ".git", like
+    # https://github.com/nait-aul/doksit.git/blob/master/..., which is not
+    # desired.
+
+    if ".git" in repository_url:
+        repository_url = repository_url.replace(".git", "")
+
     branch_name = BRANCH_NAME_REGEX.search(current_branch).group(1)
 
     return repository_url + "/blob/" + branch_name + "/"
