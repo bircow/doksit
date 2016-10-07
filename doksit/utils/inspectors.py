@@ -35,17 +35,17 @@ def _get_repository_url() -> Union[str, None]:
         return
 
     repository_url = REPOSITORY_URL_REGEX.search(remote_repository).group(1)
+    branch_name = BRANCH_NAME_REGEX.search(current_branch).group(1)
+    full_url = repository_url + "/blob/" + branch_name + "/"
 
     # Repository cloners may have in the repository url suffix ".git", like
     # https://github.com/nait-aul/doksit.git/blob/master/..., which is not
     # desired.
 
-    if ".git/blob/" in repository_url:
-        repository_url = repository_url.replace(".git", "", 1)
+    if ".git/blob/" in full_url:
+        full_url = full_url.replace(".git", "", 1)
 
-    branch_name = BRANCH_NAME_REGEX.search(current_branch).group(1)
-
-    return repository_url + "/blob/" + branch_name + "/"
+    return full_url
 
 
 def _get_line_numbers(object_name: Any) -> str:
