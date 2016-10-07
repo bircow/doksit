@@ -40,8 +40,8 @@ def _get_repository_url() -> Union[str, None]:
     # https://github.com/nait-aul/doksit.git/blob/master/..., which is not
     # desired.
 
-    if ".git" in repository_url:
-        repository_url = repository_url.replace(".git", "")
+    if ".git/blob/" in repository_url:
+        repository_url = repository_url.replace(".git", "", 1)
 
     branch_name = BRANCH_NAME_REGEX.search(current_branch).group(1)
 
