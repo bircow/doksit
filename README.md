@@ -1,5 +1,7 @@
 # Doksit
 
-New `README.md` is going to be uploaded along with future release 0.2.0.
+[![Build Status](https://travis-ci.org/nait-aul/doksit.svg?branch=master)](https://travis-ci.org/nait-aul/doksit)
 
-**Note:** I'm experimenting with procedural and very slightly functional programming. OOP will be in another branch.
+`doksit` is still in development mode and new version 0.2.0 is going to be available around 25th - 27th October with new `README.md`, `CONTRIBUTING.md`, tutorials, docs etc.
+
+**Current status:** Refactor some parts to OOP for better scalability in the future (easier new features implementation & space for 3rd party extensions). 
