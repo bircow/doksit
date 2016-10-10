@@ -20,6 +20,13 @@ def test_api_subcommand():
     assert "# API Reference" in result.output
 
 
+def test_title_option():
+    result = RUNNER.invoke(api, ["test_data", "--title", "Different title"])
+
+    assert result.exit_code == 0
+    assert "# Different title" in result.output
+
+
 def test_api_subcommand_with_colored_option():
     """
     Don't assert a content in the result.output, because it executes

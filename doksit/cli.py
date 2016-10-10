@@ -32,10 +32,12 @@ def cli():
 
 
 @cli.command()
+@click.option("-t", "--title", type=str, default="API Reference",
+              help="Title for the generated documentation.")
 @click.option("--colored", is_flag=True,
               help="Color the documentation output.")
 @click.argument("package_directory", type=click.Path(exists=True))
-def api(package_directory: str, colored: bool):
+def api(package_directory: str, colored: bool, title: str):
     """
     Generate the API Reference documentation.
     """
@@ -44,13 +46,15 @@ def api(package_directory: str, colored: bool):
     # printed like man pages.
     #
     # Arguments:
-    #     package_directory:
+    #     package_directory (str):
     #         Relative path to the Python package directory.
-    #     colored:
+    #     title (str):
+    #         Title name for the generated documentation.
+    #     colored (bool):
     #         Whether to color the documentation output or not.
     #
 
-    api_documentation = ["# API Reference"]
+    api_documentation = ["# " + title]
     file_paths = find_files(package_directory)
 
     for file in file_paths:
