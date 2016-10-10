@@ -31,7 +31,7 @@ class Foo:
             things
     """
 
-    def __init__(self, x: str, y: float = 1.0, z: List[int] = []) -> None:
+    def __init__(self, x: str, y: float=1.0, z: List[int]=None) -> None:
         """
         This is a brief description.
 
