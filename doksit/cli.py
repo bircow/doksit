@@ -10,13 +10,14 @@ Warning:
     to specific line number. The reason is that is not possible to locate
     CLI functions using `click` package (bug).
 """
+
 import os
 import subprocess
 
 import click
 
-from doksit.api import (
-    find_files, get_documentation, read_file, color_documentation)
+from doksit.api import DoksitStyle
+from doksit.utils.highlighter import color_documentation
 
 
 @click.group()
@@ -54,15 +55,8 @@ def api(package_directory: str, colored: bool, title: str):
     #         Whether to color the documentation output or not.
     #
 
-    api_documentation = ["# " + title]
-    file_paths = find_files(package_directory)
-
-    for file in file_paths:
-        file_metadata = read_file(file)
-        file_documentation = get_documentation(file_metadata)
-
-        if file_documentation is not None:
-            api_documentation.append(file_documentation)
+    api_parser = DoksitStyle(package_directory, title)
+    api_documentation = api_parser.get_api_documentation()
 
     if colored:
         colored_documentation = color_documentation(api_documentation)
@@ -73,4 +67,4 @@ def api(package_directory: str, colored: bool, title: str):
 
         subprocess.call(["less", "-r"], stdin=read)
     else:
-        click.echo_via_pager("\n".join(api_documentation))
+        click.echo_via_pager(api_documentation)

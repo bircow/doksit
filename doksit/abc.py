@@ -4,6 +4,7 @@ Here are defined abstract base classes.
 
 import abc
 import inspect
+import os
 import re
 import subprocess
 
@@ -36,7 +37,7 @@ class Base:
     def get_api_documentation(self):
         """
         Abstract `get_api_documentation` method which will return parsed
-        API reference documentation in Markdown format.
+        API reference documentation in Markdown format or also None value.
         """
         pass
 
@@ -295,6 +296,36 @@ class Base:
 
             else:  # Eg. user defined class object.
                 return return_annotation
+
+    @staticmethod
+    def find_files(package_path: str) -> List[str]:
+        """
+        Browse the given package directory and find all Python files.
+
+        Note:
+            Files in the `__pycache__` subdirectories are excluded. The same
+            goes for the `__init__.py` and `__main__.py` files.
+
+        Arguments:
+            package_path:
+                Relative path to the Python package directory.
+
+        Returns:
+            List of found Python files (their relative paths).
+
+        Example:
+            ["package/module.py", "package/subpackage/module.py"]
+        """
+        file_paths = []
+        ignored_files = ("__init__.py", "__main__.py")
+
+        for root, _, files in os.walk(package_path):
+            if os.path.basename(root) != "__pycache__":
+                for file in files:
+                    if file.endswith(".py") and file not in ignored_files:
+                        file_paths.append(os.path.join(root, file))
+
+        return file_paths
 
     @staticmethod
     def read_file(file_path: str) -> Tuple[str, MyOrderedDict, List[str]]:
