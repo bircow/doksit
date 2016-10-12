@@ -10,7 +10,7 @@ from doksit.exceptions import PackageError
 
 def _is_package(package: str) -> bool:
     """
-    Check, if the given package is really a package or not (subpackage).
+    Check, if the given package is really a package and not (subpackage).
 
     Arguments:
         package (str):
