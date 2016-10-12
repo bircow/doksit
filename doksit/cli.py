@@ -17,6 +17,7 @@ import subprocess
 import click
 
 from doksit.api import DoksitStyle
+from doksit.validators import guess_package
 from doksit.utils.highlighter import color_documentation
 
 
@@ -33,21 +34,22 @@ def cli():
 
 
 @cli.command()
+@click.option("-p", "--package", type=click.Path(exists=True),
+              help="Path to the package directory.")
 @click.option("-t", "--title", type=str, default="API Reference",
               help="Title for the generated documentation.")
 @click.option("--colored", is_flag=True,
               help="Color the documentation output.")
-@click.argument("package_directory", type=click.Path(exists=True))
-def api(package_directory: str, colored: bool, title: str):
+def api(package: str, colored: bool, title: str):
     """
     Generate the API Reference documentation.
     """
     #
     # If a stdout redirection isn't used, then the documentation will be
-    # printed like man pages.
+    # printed like man pages via `less`.
     #
     # Arguments:
-    #     package_directory (str):
+    #     package (str):
     #         Relative path to the Python package directory.
     #     title (str):
     #         Title name for the generated documentation.
@@ -55,7 +57,10 @@ def api(package_directory: str, colored: bool, title: str):
     #         Whether to color the documentation output or not.
     #
 
-    api_parser = DoksitStyle(package_directory, title)
+    if package is None:
+        package = guess_package()
+
+    api_parser = DoksitStyle(package, title)
     api_documentation = api_parser.get_api_documentation()
 
     if colored:
