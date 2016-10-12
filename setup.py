@@ -29,7 +29,8 @@ except ImportError:
     long_description = ""
 
 install_requires = [
-    "click"
+    "click",
+    "pyyaml"
 ]
 
 if sys.version_info < (3, 5, 0):
