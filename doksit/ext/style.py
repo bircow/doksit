@@ -1,0 +1,2 @@
+class DoksitStyle:
+    pass
