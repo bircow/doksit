@@ -2,8 +2,9 @@
 Here are defined command line interfaces (CLI) as functions.
 
 Note:
-    The functions docstrings have very short documentation, because they're
-    taken as CLI description. Therefore the rest is written in comments.
+    The CLI docstrings have very short documentation, because they're
+    taken as CLI description. Therefore the rest may be written in comments or
+    help arguments for each parameters.
 
 Warning:
     The source code links below lead to a module file only and not direct
@@ -17,12 +18,12 @@ import subprocess
 import click
 
 from doksit.api import DoksitStyle
-from doksit.validators import guess_package
+from doksit.helpers import guess_package
 from doksit.utils.highlighter import color_documentation
 
 
 @click.group()
-def cli():
+def cli() -> None:
     """
     Use one of the subcommands below.
     """
@@ -36,25 +37,22 @@ def cli():
 @cli.command()
 @click.option("-p", "--package", type=click.Path(exists=True),
               help="Path to the package directory.")
+@click.option("-s", "--style", type=click.Choice(["google", "doksit"]),
+              help="Which docstring parser will be used.")
 @click.option("-t", "--title", type=str, default="API Reference",
               help="Title for the generated documentation.")
+@click.option("--smooth", is_flag=True,
+              help="Smooth the documentation output.")
 @click.option("--colored", is_flag=True,
               help="Color the documentation output.")
-def api(package: str, colored: bool, title: str):
+def api(package: str, style: str, title: str, smooth: bool, colored: bool) \
+        -> None:
     """
     Generate the API Reference documentation.
     """
     #
     # If a stdout redirection isn't used, then the documentation will be
     # printed like man pages via `less`.
-    #
-    # Arguments:
-    #     package (str):
-    #         Relative path to the Python package directory.
-    #     title (str):
-    #         Title name for the generated documentation.
-    #     colored (bool):
-    #         Whether to color the documentation output or not.
     #
 
     if package is None:
@@ -71,5 +69,7 @@ def api(package: str, colored: bool, title: str):
         os.close(write)
 
         subprocess.call(["less", "-r"], stdin=read)
+    elif smooth:
+        pass
     else:
         click.echo_via_pager(api_documentation)
