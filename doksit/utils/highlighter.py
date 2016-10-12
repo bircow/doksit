@@ -45,6 +45,9 @@ def _color_heading(line: str) -> str:
         return START + "32;40;1m" + line + END
 
     elif line.startswith(HEADINGS[2]):
+        if "\_\_init\_\_" in line:
+            line = line.replace("\_\_init\_\_", "__init__")
+
         return START + "33;40;1m" + line + END
 
     elif line.startswith(HEADINGS[3]):
@@ -89,12 +92,7 @@ def _color_header(line: str) -> str:
     Example:
         "\x1b[31;40;1mWarning:\x1b[21\x1b[97m\x1b[K"
     """
-    line = line.strip("*")
-
-    if line in ["Warning:"]:
-        return START + "31;40;1m" + line + END
-    else:
-        return START + "97;40;1m" + line + END
+    return START + "97;40;1m" + line.strip("*") + END
 
 
 def _color_module_documentation(documentation: str) -> str:
