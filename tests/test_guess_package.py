@@ -5,7 +5,7 @@ import pytest
 from setuptools import find_packages
 
 from doksit.exceptions import PackageError
-from doksit.validators import guess_package, _is_package
+from doksit.helpers import guess_package, _is_package
 
 
 def test_is_package():

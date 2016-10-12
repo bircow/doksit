@@ -1,7 +1,10 @@
 """
-Here are defined validation functions (callbacks) and other helpers for CLI
-commands.
+Here are defined helping functions.
 """
+
+import os.path
+
+from typing import List
 
 from setuptools import find_packages
 
@@ -29,6 +32,9 @@ def guess_package() -> str:
     Returns:
         The package name.
 
+    Example:
+        "doksit"
+
     Raises:
         PackageError:
             Cannot guess a package name.
@@ -43,3 +49,13 @@ def guess_package() -> str:
         raise PackageError
 
     return filtered_packages[0]
+
+
+def validate_file_path(file_path) -> str:
+    """
+    Validate the given file path.
+
+    Returns:
+        True, if the file path really exists.
+    """
+    return os.path.isfile(file_path)
