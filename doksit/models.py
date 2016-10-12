@@ -47,7 +47,10 @@ class Base:
     @property
     def config(self) -> Optional[Any]:
         """
-        Parsed content of `.doksit.yml` file.
+        Get parsed content of `.doksit.yml` file.
+
+        Returns:
+            The parsed cotent of config file or nothing (file doesn'ŧ exist).
 
         Example:
             {"docstring": "doksit"}
@@ -71,45 +74,6 @@ class Base:
 
     @property
     def repository_url(self) -> Optional[str]:
-        """
-        GitHub repository URL if a user is using Git with GitHub, else
-        nothing.
-
-        Example:
-            "https://github.com/nait-aul/doksit"
-        """
-        return self._get_repository_url()
-
-    @property
-    def current_branch(self) -> Optional[str]:
-        """
-        Name of current active branch name if a user is using Git, else
-        nothing.
-
-        Example:
-            "master"
-        """
-        return self._get_current_branch()
-
-    @property
-    def repository_prefix(self) -> Optional[str]:
-        """
-        GitHub repository URL including suffix `/blob/<branch_name>/`.
-
-        This attribute will be used as a prefix with a file path to create
-        absolute URL to the given file to see its content.
-
-        Example:
-            "https://github.com/nait-aul/doksit/blob/master/"
-        """
-        if self.repository_url is not None and self.current_branch is not \
-                None:
-            return self.repository_url + "/blob/" + self.current_branch + "/"
-        else:
-            return None
-
-    @staticmethod
-    def _get_repository_url() -> Optional[str]:
         """
         Get an absolute URL path to a Github repository.
 
@@ -136,10 +100,10 @@ class Base:
 
         return repository_url
 
-    @staticmethod
-    def _get_current_branch() -> Optional[str]:
+    @property
+    def current_branch(self) -> Optional[str]:
         """
-        Get current active branch name.
+        Get current branch name.
 
         If a user is not using Git & GitHub, then nothing will be raised
         and returned will be only `None` value.
@@ -158,8 +122,25 @@ class Base:
 
         return BRANCH_NAME_REGEX.search(current_branch).group(1)
 
+    @property
+    def repository_prefix(self) -> Optional[str]:
+        """
+        GitHub repository URL including suffix `/blob/<branch_name>/`.
+
+        This attribute will be used as a prefix with a file path to create
+        absolute URL to the given file to see its content.
+
+        Example:
+            "https://github.com/nait-aul/doksit/blob/master/"
+        """
+        if self.repository_url is not None and self.current_branch is not \
+                None:
+            return self.repository_url + "/blob/" + self.current_branch + "/"
+        else:
+            return None
+
     @staticmethod
-    def _get_line_numbers(object_name: Any) -> str:
+    def get_line_numbers(object_name: Any) -> str:
         """
         Find on which lines is the given object defined / located.
 
@@ -194,8 +175,8 @@ class Base:
         """
         Get an absolute path to the source file / object on GiHub.
 
-        If this method is called for an object, then a suffix for GitHub line
-        highlights will be added.
+        If this method is called for an object, then a suffix (object location)
+        will be added for for GitHub feature line highlights will be added.
 
         Arguments:
             module:
@@ -217,7 +198,7 @@ class Base:
             url = "[source](" + str(repository_prefix) + module_path
 
             if object_name is not None:
-                url += self._get_line_numbers(object_name)
+                url += self.get_line_numbers(object_name)
 
             return url + ")\n\n"
         else:
