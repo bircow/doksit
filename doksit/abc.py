@@ -10,6 +10,8 @@ import subprocess
 
 from typing import Any, List, Optional, Tuple
 
+import yaml
+
 from doksit.data_types import MyOrderedDict
 
 REPOSITORY_URL_REGEX = re.compile(r"origin\t([\S]+) ")
@@ -32,6 +34,7 @@ class Base:
     based on different docstring style than is Doksit / Google style.
     """
     __metaclass__ = abc.ABCMeta
+    __slots__ = ()
 
     @abc.abstractmethod
     def get_api_documentation(self):
@@ -40,6 +43,31 @@ class Base:
         API reference documentation in Markdown format or also None value.
         """
         pass
+
+    @property
+    def config(self) -> Optional[Any]:
+        """
+        Parsed content of `.doksit.yml` file.
+
+        Example:
+            {"docstring": "doksit"}
+
+        Raises:
+            yaml.YAMLError:
+                Invalid syntax in the config file.
+        """
+        try:
+            with open(".doksit.yml") as file:
+                file_content = file.read()
+        except FileNotFoundError:
+            return None
+
+        try:
+            config = yaml.load(file_content)
+        except yaml.YAMLError as error:
+            print("Error in the '.doksit.yml':", error)
+
+        return config
 
     @property
     def repository_url(self) -> Optional[str]:
