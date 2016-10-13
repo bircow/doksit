@@ -4,8 +4,6 @@ Here are defined helping functions.
 
 import os.path
 
-from typing import List
-
 from setuptools import find_packages
 
 from doksit.exceptions import PackageError
