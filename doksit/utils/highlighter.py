@@ -45,8 +45,8 @@ def _color_heading(line: str) -> str:
         return START + "32;40;1m" + line + END
 
     elif line.startswith(HEADINGS[2]):
-        if "\_\_init\_\_" in line:
-            line = line.replace("\_\_init\_\_", "__init__")
+        if r"\_\_init\_\_" in line:
+            line = line.replace(r"\_\_init\_\_", "__init__")
 
         return START + "33;40;1m" + line + END
 
