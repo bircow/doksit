@@ -37,15 +37,13 @@ def cli() -> None:
 @cli.command()
 @click.option("-p", "--package", type=click.Path(exists=True),
               help="Path to the package directory.")
-@click.option("-s", "--style", type=click.Choice(["google", "doksit"]),
-              help="Which docstring parser will be used.")
 @click.option("-t", "--title", type=str, default="API Reference",
               help="Title for the generated documentation.")
 @click.option("--smooth", is_flag=True,
               help="Smooth the documentation output.")
 @click.option("--colored", is_flag=True,
               help="Color the documentation output.")
-def api(package: str, style: str, title: str, smooth: bool, colored: bool) \
+def api(package: str, title: str, smooth: bool, colored: bool) \
         -> None:
     """
     Generate the API Reference documentation.
