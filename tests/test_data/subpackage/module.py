@@ -6,7 +6,7 @@ Example:
     Hello World!
 """
 
-from typing import List, Union
+from typing import Any, List, Union
 
 
 class Foo:
@@ -58,7 +58,7 @@ class Foo:
         """
         pass
 
-    def method(self) -> List[str]:
+    def method(self, a, b) -> List[str]:
         """
         This is a brief description.
 
@@ -76,7 +76,7 @@ class Foo:
         pass
 
     @staticmethod
-    def static_method() -> str:
+    def static_method(*args: Any, **kwargs: Any) -> str:
         """
         This is a static method.
 
@@ -87,7 +87,7 @@ class Foo:
         """
         pass
 
-    def _protected(self) -> list:
+    def _protected(self):
         """
         This will be ignored.
         """
@@ -136,7 +136,7 @@ def another_function() -> Union[str, int]:
     pass
 
 
-def _hidden_function() -> None:
+def _hidden_function() -> Foo:
     """
     This will be ignored.
     """
