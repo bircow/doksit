@@ -2,15 +2,8 @@ import os
 
 import pytest
 
-from setuptools import find_packages
-
 from doksit.exceptions import PackageError
-from doksit.helpers import guess_package, _is_package
-
-
-def test_is_package():
-    assert _is_package("doksit")
-    assert not _is_package("doksit.cli")
+from doksit.helpers import guess_package
 
 
 def test_guess_package():
@@ -18,14 +11,13 @@ def test_guess_package():
 
     assert guess_package() == "doksit"
 
+    os.chdir("tests")
+
 
 def test_fail_guess_package():
-    packages = find_packages()
-    filtered_packages = list(filter(_is_package, packages))
+    with pytest.raises(PackageError) as error:
+        guess_package()
 
-    if "tests" in filtered_packages:
-        filtered_packages.remove("tests")
+    message = "Cannost guess a package, please use option:\n'-p <package>'"
 
-    with pytest.raises(PackageError):
-        if len(filtered_packages) >= 1:
-            raise PackageError
+    assert str(error.value) == message
