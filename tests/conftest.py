@@ -8,9 +8,14 @@ def check_test_directory():
     """
     If a user run tests from project root directory, then change directory
     to 'tests' for successful running.
+
+    Plus add blank directory "docs/" for the same reason.
     """
     if os.path.relpath(".", "..") != "tests" and "setup.py" in os.listdir():
         os.chdir("tests/")
+
+        if "docs" not in os.listdir():
+            os.mkdir("docs")
 
 
 @pytest.fixture
