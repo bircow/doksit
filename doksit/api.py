@@ -22,6 +22,15 @@ class DoksitStyle(Base, DocstringParser):
     __slots__ = ("package", "title")
 
     def __init__(self, package: str, title: str) -> None:
+        """
+        Initialize an instance of DoksitStyle class.
+
+        Arguments:
+            package:
+                Name of Python package.
+            title:
+                Title for the API documentation output.
+        """
         self.package = package
         self.title = title
 
