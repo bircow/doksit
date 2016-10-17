@@ -49,7 +49,7 @@ def guess_package() -> str:
     return filtered_packages[0]
 
 
-def validate_file_path(file_path) -> str:
+def validate_file_path(file_path) -> bool:
     """
     Validate the given file path.
 
