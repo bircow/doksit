@@ -8,6 +8,7 @@ from tests.test_data.module import (
 
 parser = DocstringParser()
 
+
 @pytest.mark.parametrize("docstring", [
     [
         "Arguments:",
