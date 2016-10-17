@@ -19,7 +19,7 @@ import click
 
 from doksit.api import DoksitStyle
 from doksit.helpers import guess_package
-from doksit.utils.highlighter import color_documentation
+from doksit.utils.highlighters import ColoredHighlighter, SmoothHighlighter
 
 
 @click.group()
@@ -60,7 +60,8 @@ def api(package: str, title: str, smooth: bool, colored: bool) \
     api_documentation = api_parser.get_api_documentation()
 
     if colored:
-        colored_documentation = color_documentation(api_documentation)
+        colored_parser = ColoredHighlighter(api_documentation, title)
+        colored_documentation = colored_parser.get_api_documentation()
 
         read, write = os.pipe()
         os.write(write, colored_documentation.encode("ascii"))
@@ -68,6 +69,8 @@ def api(package: str, title: str, smooth: bool, colored: bool) \
 
         subprocess.call(["less", "-r"], stdin=read)
     elif smooth:
-        pass
+        smooth_parser = SmoothHighlighter(api_documentation, title)
+
+        click.echo_via_pager(smooth_parser.get_api_documentation())
     else:
         click.echo_via_pager(api_documentation)
