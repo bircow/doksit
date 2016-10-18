@@ -17,7 +17,8 @@ from doksit.data_types import MyOrderedDict
 
 class DoksitStyle(Base, DocstringParser):
     """
-    Description.
+    Main class for generating API documentation from docstrings written
+    in Doksit style (Google + almost all Napoleon + Doksit layer).
     """
     __slots__ = ("package", "title")
 
@@ -205,9 +206,7 @@ class DoksitStyle(Base, DocstringParser):
 
         return classes_documentation
 
-    def get_method_documentation(self,
-                                 module: Any,
-                                 method: Any,
+    def get_method_documentation(self, module: Any, method: Any,
                                  method_name: str) -> str:
         """
         Get parsed method documentation for the given method.
@@ -237,9 +236,16 @@ class DoksitStyle(Base, DocstringParser):
         """
         if method_name == "__init__":
             method_name = r"\_\_init\_\_"
+            method_documentation = "\n\n#### constructor\n\n"
 
-        method_documentation = "\n\n#### method {method_name}\n\n" \
-            .format(method_name=method_name)
+        elif isinstance(method, property):
+            method_documentation = "\n\n#### property {method_name}\n\n" \
+                .format(method_name=method_name)
+
+        else:
+            method_documentation = "\n\n#### method {method_name}\n\n" \
+                .format(method_name=method_name)
+
         method_documentation += self.get_source_code_url(module, method)
         method_documentation += self.get_markdowned_docstring(method)
 
