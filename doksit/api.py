@@ -123,6 +123,10 @@ class DoksitStyle(Base, DocstringParser):
             sys.path.append(".")
             imported_module = importlib.import_module(module_path)
 
+        if self.alphabetically:
+            classes = self._order_classes(imported_module, classes)
+            functions = sorted(functions)
+
         documentation = ""
         documentation += self.get_module_documentation(imported_module)
         documentation += self.get_class_documentation(imported_module, classes)
@@ -130,6 +134,64 @@ class DoksitStyle(Base, DocstringParser):
                                                          functions)
 
         return documentation
+
+    @property
+    def alphabetically(self) -> bool:
+        """
+        True, if objects and their docstring should be sorted in the API
+        documentation alphabetically, otherwise False.
+        """
+        if self.config is not None:
+            order = self.config.get("order", None)
+
+            if order is not None:
+                if order == "a-z" or order == "alphabetically":
+                    return True
+
+        return False
+
+    @staticmethod
+    def _order_classes(module: Any, classes: MyOrderedDict) -> MyOrderedDict:
+        """
+        Order alphabetically classes.
+
+        About methods, they will be sorted in the following order:
+
+        1. constructor
+        2. properties
+        3. methods
+        """
+        classes = MyOrderedDict(sorted(classes.items()))
+
+        for class_name in classes:
+            original_methods = classes[class_name]
+            sorted_methods = []
+
+            if "__init__" in original_methods:
+                sorted_methods.append("__init__")
+                original_methods.remove("__init__")
+
+            class_object = getattr(module, class_name)
+            properties = []
+            methods = []
+
+            for method_name in original_methods:
+                method_object = getattr(class_object, method_name)
+
+                if isinstance(method_object, property):
+                    properties.append(method_name)
+                else:
+                    methods.append(method_name)
+
+            if properties:
+                sorted_methods += sorted(properties)
+
+            if methods:
+                sorted_methods += sorted(methods)
+
+            classes[class_name] = sorted_methods
+
+        return classes
 
     def get_module_documentation(self, module: Any) -> str:
         """
