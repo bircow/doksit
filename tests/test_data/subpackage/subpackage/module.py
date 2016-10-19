@@ -87,6 +87,13 @@ class Foo:
         """
         pass
 
+    @property
+    def variable(self):
+        """
+        This is a class property, which may be accessed via `Foo.variable`.
+        """
+        pass
+
     def _protected(self):
         """
         This will be ignored.
