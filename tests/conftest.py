@@ -3,6 +3,7 @@ import os
 import pytest
 
 from doksit.api import DoksitStyle
+from doksit.models import Base
 
 
 @pytest.fixture(scope="session")
@@ -35,3 +36,8 @@ def documentation():
     doksit = DoksitStyle("test_data", "API")
 
     return doksit.get_api_documentation()
+
+
+@pytest.fixture(scope="session")
+def file_metadata():
+    return Base.read_file("test_data/module.py")
