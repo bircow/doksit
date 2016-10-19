@@ -33,20 +33,17 @@ class SmoothHighlighter(Base):
     Class for `--smooth` flag in the `doksit api` command.
     """
 
-    __slots__ = ("documentation", "package")
+    __slots__ = ("documentation")
 
-    def __init__(self, documentation: str, package: str) -> None:
+    def __init__(self, documentation: str) -> None:
         """
         Initialize an instance of SmoothHiglihter class.
 
         Arguments:
             documentation:
                 Generated API documentation.
-            package:
-                Name of Python package.
         """
         self.documentation = documentation
-        self.package = package
 
     def get_api_documentation(self) -> str:
         """
@@ -65,13 +62,7 @@ class SmoothHighlighter(Base):
 
             elif not is_example_section:
                 if line.startswith(HEADINGS):
-                    if line.startswith(HEADINGS[3]) and r"\_" in line:
-                        # E.g. \_\_init\_\_ method name
-
-                        split_doc[line_number] = \
-                            style(line.replace(r"\_", "_"), bold=True)
-                    else:
-                        split_doc[line_number] = style(line, bold=True)
+                    split_doc[line_number] = style(line, bold=True)
 
                 elif line in HEADERS:
                     split_doc[line_number] = style(line.strip("*"), bold=True)
@@ -79,7 +70,7 @@ class SmoothHighlighter(Base):
                 elif line.startswith("[source](http"):
                     if split_doc[line_number - 2].startswith("\x1b[1m## "):
                         # Links to a module will be removed, because they are
-                        # duplicate with Python module path.
+                        # duplicate with Python module path + 1 blank line.
 
                         del split_doc[line_number]
                         del split_doc[line_number]
@@ -173,7 +164,7 @@ class ColoredHighlighter(SmoothHighlighter):
                 elif line.startswith("[source](http"):
                     if "34;40;1m" in split_doc[line_number - 2]:
                         # Links to a module will be removed, because they are
-                        # duplicate with Python module path.
+                        # duplicate with Python module path + 1 blank line.
 
                         del split_doc[line_number]
                         del split_doc[line_number]
@@ -226,9 +217,6 @@ class ColoredHighlighter(SmoothHighlighter):
             return START + "32;40;1m" + line + END
 
         elif line.startswith(HEADINGS[3]):
-            if r"\_\_init\_\_" in line:
-                line = line.replace(r"\_\_init\_\_", "__init__")
-
             return START + "33;40;1m" + line + END
 
         elif line.startswith(HEADINGS[4]):
