@@ -146,7 +146,7 @@ def test_clone_repository_and_get_repository_url():
 
 
 def test_get_line_numbers():
-    assert base.get_line_numbers(Foo) == "#L12-L106"
+    assert base.get_line_numbers(Foo) == "#L12-L113"
 
 
 def test_get_invalid_line_numbers():
@@ -174,7 +174,7 @@ def test_get_source_code_url_for_module(pattern):
     "[source](",
     "https://github.com/nait-aul/doksit/blob/",
     base.current_branch,
-    "tests/test_data/module.py#L12-L106",
+    "tests/test_data/module.py#L12-L113",
     ")"
 ])
 def test_get_source_code_url_for_object(pattern):
@@ -300,6 +300,8 @@ def test_read_file():
 
     assert result[0] == "test_data/module.py"
     assert list(result[1].keys()) == ["Foo", "Bar"]
-    assert result[1]["Foo"] == ["__init__", "method", "static_method"]
+    assert result[1]["Foo"] == [
+        "__init__", "method", "static_method", "variable"
+    ]
     assert result[1]["Bar"] == []
     assert result[2] == ["function", "another_function"]
