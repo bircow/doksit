@@ -2,6 +2,8 @@ import os
 
 import pytest
 
+from doksit.api import DoksitStyle
+
 
 @pytest.fixture(scope="session")
 def check_test_directory():
@@ -26,3 +28,10 @@ def change_temporarily_directory():
     yield
 
     os.chdir(current_directory)
+
+
+@pytest.fixture(scope="session")
+def documentation():
+    doksit = DoksitStyle("test_data", "API")
+
+    return doksit.get_api_documentation()
