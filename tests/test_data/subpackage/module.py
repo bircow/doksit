@@ -2,7 +2,7 @@
 This is a module docstring, right?
 
 Example:
-    >>> print("Hello World!)
+    >>> print('Hello World!')
     Hello World!
 """
 
