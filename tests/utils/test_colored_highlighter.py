@@ -1,5 +1,6 @@
 import pytest
 
+from doksit.models import Base
 from doksit.utils.highlighters import ColoredHighlighter, INLINE_CODE_REGEX
 
 COLORED = ColoredHighlighter("blabla")
@@ -50,10 +51,8 @@ def test_color_header():
 
 
 def test_modify_link():
-    original_link = (
-        "[source](https://github.com/nait-aul/doksit/blob/master/"
-        "test_data/module.py)"
-    )
+    original_link = \
+        "[source](" + Base().repository_prefix + "test_data/module.py)"
     modified_link = "-> test_data/module.py"
     colored_link = COLORED._modify_link(original_link)
 

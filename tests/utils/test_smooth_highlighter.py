@@ -1,3 +1,4 @@
+from doksit.models import Base
 from doksit.utils.highlighters import SmoothHighlighter
 
 
@@ -17,10 +18,8 @@ def test_get_smooth_api_documentation(documentation):
 def test_modify_link():
     smooth = SmoothHighlighter("blabla")
 
-    original_link = (
-        "[source](https://github.com/nait-aul/doksit/blob/master/"
-        "test_data/module.py)"
-    )
+    original_link = \
+        "[source](" + Base().repository_prefix + "test_data/module.py)"
     modified_link = "-> test_data/module.py"
 
     assert modified_link == smooth._modify_link(original_link)
