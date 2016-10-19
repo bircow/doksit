@@ -12,9 +12,11 @@ from doksit.models import Base
 HEADINGS = (
     "# ",
     "## ",
-    "### class ",
-    "#### method ",
-    "### function "
+    "### class",
+    "#### constructor",
+    "#### property",
+    "#### method",
+    "### function"
 )
 HEADERS = (
     "**Arguments:**",
@@ -216,10 +218,12 @@ class ColoredHighlighter(SmoothHighlighter):
         elif line.startswith(HEADINGS[2]):
             return START + "32;40;1m" + line + END
 
-        elif line.startswith(HEADINGS[3]):
+        elif line.startswith(HEADINGS[3]) \
+                or line.startswith(HEADINGS[4]) \
+                or line.startswith(HEADINGS[5]):
             return START + "33;40;1m" + line + END
 
-        elif line.startswith(HEADINGS[4]):
+        elif line.startswith(HEADINGS[6]):
             return START + "36;40;1m" + line + END
 
     @staticmethod
