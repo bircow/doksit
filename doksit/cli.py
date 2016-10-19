@@ -60,7 +60,7 @@ def api(package: str, title: str, smooth: bool, colored: bool) \
     api_documentation = api_parser.get_api_documentation()
 
     if colored:
-        colored_parser = ColoredHighlighter(api_documentation, title)
+        colored_parser = ColoredHighlighter(api_documentation)
         colored_documentation = colored_parser.get_api_documentation()
 
         read, write = os.pipe()
@@ -69,7 +69,7 @@ def api(package: str, title: str, smooth: bool, colored: bool) \
 
         subprocess.call(["less", "-r"], stdin=read)
     elif smooth:
-        smooth_parser = SmoothHighlighter(api_documentation, title)
+        smooth_parser = SmoothHighlighter(api_documentation)
 
         click.echo_via_pager(smooth_parser.get_api_documentation())
     else:
