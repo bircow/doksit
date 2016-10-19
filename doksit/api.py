@@ -38,6 +38,29 @@ class DoksitStyle(Base, DocstringParser):
     def get_api_documentation(self) -> str:
         """
         Get markdowned API documentation.
+
+        Example: (markdown)
+            ## package_name.module_name
+
+            This is a markdowned module docstring.
+
+            ### class class_name
+
+            ([source](absolute_url_path_to_file_and_higlighted_code_block))
+
+            This is a markdowned class docstring.
+
+            #### method method_name
+
+            ([source](...))
+
+            This is a markdowned method docstring.
+
+            ### function function_name
+
+            ([source](...))
+
+            This is a markdowned function docstring.
         """
         file_paths = self.find_files(self.package)
 
@@ -86,29 +109,6 @@ class DoksitStyle(Base, DocstringParser):
         Returns:
             The documentation for the given file in Markdown format or nothing
             (the Python file is likely empty).
-
-        Example: (markdown)
-            ## package_name.module_name
-
-            This is a markdowned module docstring.
-
-            ### class class_name
-
-            ([source](absolute_url_path_to_file_and_higlighted_code_block))
-
-            This is a markdowned class docstring.
-
-            #### method method_name
-
-            ([source](...))
-
-            This is a markdowned method docstring.
-
-            ### function function_name
-
-            ([source](...))
-
-            This is a markdowned function docstring.
         """
         file_path, classes, functions = file_metadata
 
