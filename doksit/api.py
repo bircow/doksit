@@ -78,6 +78,10 @@ class DoksitStyle(Base, DocstringParser):
 
                     file_path = \
                         "{{ " + file.replace(self.package + "/", "", 1) + " }}"
+
+                    # Original file path is eg. `module.py`, but Doksit
+                    # internaly used `<package_name>/module.py` path.
+
                     file_content = \
                         file_content.replace(file_path, file_documentation)
 
