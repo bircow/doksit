@@ -12,7 +12,7 @@ def check_test_directory():
     If a user run tests from project root directory, then change directory
     to 'tests' for successful running.
 
-    Plus add blank directory "docs/" for the same reason.
+    Plus add blank directory "docs/" for the same reason, if it's missing.
     """
     if os.path.relpath(".", "..") != "tests" and "setup.py" in os.listdir():
         os.chdir("tests/")
@@ -23,6 +23,9 @@ def check_test_directory():
 
 @pytest.fixture
 def change_temporarily_directory():
+    """
+    For testing methods in non-git environment.
+    """
     current_directory = os.getcwd()
     os.chdir("../..")
 
@@ -33,9 +36,22 @@ def change_temporarily_directory():
 
 @pytest.fixture(scope="session")
 def documentation():
+    """
+    Generate sample documentation from test data.
+    """
     doksit = DoksitStyle("test_data", "API")
 
     return doksit.get_api_documentation()
+
+
+@pytest.fixture
+def enable_alphabetical_order():
+    with open(".doksit.yml", "w") as file:
+        file.write("order: a-z")
+
+    yield
+
+    os.remove(".doksit.yml")
 
 
 @pytest.fixture(scope="session")
