@@ -10,6 +10,7 @@ install:
 script:
   - tox
 after_success:
+  - pytest --cov=doksit
   - bash <(curl -s https://codecov.io/bash)
 notifications:
   email:
