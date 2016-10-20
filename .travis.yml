@@ -6,10 +6,12 @@ python:
 before_install:
   - sudo apt-get install pandoc
 install:
+  - pip install codecov
   - pip install tox-travis
 script:
   - tox
 after_success:
+  - codecov
   - bash <(curl -s https://codecov.io/bash)
 notifications:
   email:
