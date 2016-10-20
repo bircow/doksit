@@ -104,7 +104,7 @@ class SmoothHighlighter(Base):
 START = "\x1b["
 END = "\x1b[K\x1b[0m"
 
-INLINE_CODE_REGEX = re.compile(r"`[\S]+`")
+INLINE_CODE_REGEX = re.compile(r"`[^`]+`")
 
 
 class ColoredHighlighter(SmoothHighlighter):

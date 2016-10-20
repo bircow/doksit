@@ -81,13 +81,13 @@ def test_color_rest_with_inline_code_in():
 
 ###############################################################################
 
-@pytest.mark.parametrize("code", [
-    "This is a `code`",
-    "`doksit.api.DoksitStyle`",
-    "Multiple codes `a` and `b`"
+@pytest.mark.parametrize("code,result", [
+    ("This is an `inline code`", ["`inline code`"]),
+    ("`doksit.api.DoksitStyle`", ["`doksit.api.DoksitStyle`"]),
+    ("Multiple codes `a` and `b`", ["`a`", "`b`"])
 ])
-def test_inline_code_regex(code):
-    assert INLINE_CODE_REGEX.findall(code)
+def test_inline_code_regex(code, result):
+    assert INLINE_CODE_REGEX.findall(code) == result
 
 
 def test_color_inline_code():
