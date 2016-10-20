@@ -1,12 +1,45 @@
 import copy
 import os
 
+import pytest
+
 from doksit.api import DoksitStyle
 from doksit.models import Base
 
 from tests.test_data import module
 
-doksit = DoksitStyle("tests_data", "API")
+doksit = DoksitStyle("test_data", "API")
+
+
+def test_get_api_documentation():
+    """
+    api_doc = doksit.get_api_documentation()
+
+    assert "# API" in api_doc
+    assert "test_data/blank.py" not in api_doc
+    """
+    pass
+
+
+def test_get_api_documentation_respecting_template():
+    template_text = (
+        "# API\n\n"
+        "This is a paragraph.\n\n"
+        "{{ module.py }}"
+    )
+
+    with open("docs/_api.md", "w") as file:
+        file.write(template_text)
+
+    api_doc = doksit.get_api_documentation()
+
+    assert "{{ module.py }}" not in api_doc
+    assert "## test_data.module" in api_doc
+
+    os.remove("docs/_api.md")
+
+
+###############################################################################
 
 
 def test_get_documentation(file_metadata):
@@ -16,6 +49,24 @@ def test_get_documentation(file_metadata):
     assert "## test_data.module" in doc
 
 
+@pytest.mark.usefixtures("enable_alphabetical_order")
+def test_get_documentation_in_alphabetical_order():
+    file_metadata = Base.read_file("test_data/module.py")
+    doc = doksit._get_documentation(file_metadata)
+
+    assert doc.index("class Bar") < doc.index("class Foo")
+    assert doc.index("property variable") < doc.index("method method")
+    assert doc.index("function another_function") \
+        < doc.index("function function")
+
+
+def test_get_documentation_for_blank_file():
+    file_metadata = Base.read_file("test_data/blank.py")
+    doc = doksit._get_documentation(file_metadata)
+
+    assert doc is None
+
+
 ###############################################################################
 
 
@@ -23,13 +74,9 @@ def test_alphabetically():
     assert not doksit.alphabetically
 
 
+@pytest.mark.usefixtures("enable_alphabetical_order")
 def test_alphabetically_with_config_file():
-    with open(".doksit.yml", "w") as file:
-        file.write("order: a-z")
-
     assert doksit.alphabetically
-
-    os.remove(".doksit.yml")
 
 
 ###############################################################################
@@ -90,7 +137,6 @@ def test_get_method_documentation_for_constructor(file_metadata):
 
 def test_get_method_documentation_for_property(file_metadata):
     _, classes, _ = file_metadata
-    method = classes["Foo"][3]
 
     class_object = getattr(module, "Foo")
     method_object = getattr(class_object, "variable")
@@ -103,7 +149,6 @@ def test_get_method_documentation_for_property(file_metadata):
 
 def test_get_method_documentation_for_method(file_metadata):
     _, classes, _ = file_metadata
-    method = classes["Foo"][1]
 
     class_object = getattr(module, "Foo")
     method_object = getattr(class_object, "method")
@@ -118,14 +163,11 @@ def test_get_method_documentation_for_method(file_metadata):
 
 
 def test_get_function_documentation(file_metadata):
-    """
     _, _, functions = file_metadata
     doc = doksit.get_function_documentation(module, functions)
 
     assert doc
     assert "### function function" in doc
-    """
-    pass
 
 
 ###############################################################################
