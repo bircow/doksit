@@ -193,6 +193,7 @@ def test_get_blank_source_code_url():
 
 def test_find_files():
     expected_file_paths = [
+        "test_data/blank.py",
         "test_data/module.py",
         "test_data/subpackage/module.py",
         "test_data/subpackage/subpackage/module.py",
