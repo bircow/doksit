@@ -210,6 +210,10 @@ class Base:
 
         Example:
             ["package/module.py", "package/subpackage/module.py"]
+
+        Raises:
+            ValueError:
+                Invalid file path variable in the `docs/_api.md` template.
         """
         file_paths = []
 
