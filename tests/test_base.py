@@ -10,7 +10,7 @@ import yaml
 from doksit.cli import api
 from doksit.models import (
     Base, BRANCH_NAME_REGEX, CLASS_REGEX, FUNCTION_REGEX, METHOD_REGEX,
-    REPOSITORY_URL_REGEX, STATIC_METHOD_REGEX
+    REPOSITORY_URL_REGEX, STATIC_METHOD_REGEX, VARIABLE_REGEX
 )
 
 from tests.test_data import module
@@ -206,8 +206,8 @@ def test_find_files():
     "{{ module.py }}",
     "{{module.py}}"
 ])
-def test_path_regex(text):
-    assert re.search(r"{{ ?([\S]+) ?}}", text).group(1) == "module.py"
+def test_variable_regex(text):
+    assert VARIABLE_REGEX.search(text).group(1) == "module.py"
 
 
 def test_find_files_in_template():

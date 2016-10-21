@@ -19,6 +19,8 @@ from doksit.helpers import validate_file_path
 REPOSITORY_URL_REGEX = re.compile(r"origin\t([\S]+) ")
 BRANCH_NAME_REGEX = re.compile(r"\* (.+)\n")
 
+VARIABLE_REGEX = re.compile(r"{{ ?([\S]+) ?}}")  # In a template / module doc.
+
 CLASS_REGEX = re.compile(r"^class (\w+):?|\(")
 METHOD_REGEX = re.compile(r"^    def ([\w_]+)\((self|cls)")
 STATIC_METHOD_REGEX = re.compile(r"    def ([\w_]+)\(")
@@ -221,8 +223,7 @@ class Base:
             with open("docs/_api.md") as file:
                 file_content = file.read()
 
-            path_regex = re.compile(r"{{ ?([\S]+) ?}}")
-            found_paths = path_regex.findall(file_content)
+            found_paths = VARIABLE_REGEX.findall(file_content)
 
             for file in found_paths:
                 file_paths.append(os.path.join(package, file))
