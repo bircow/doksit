@@ -12,13 +12,13 @@ doksit = DoksitStyle("test_data", "API")
 
 
 def test_get_api_documentation():
-    """
     api_doc = doksit.get_api_documentation()
 
     assert "# API" in api_doc
-    assert "test_data/blank.py" not in api_doc
-    """
-    pass
+    assert "test_data.module" in api_doc
+    assert "test_data.subpackage.module" in api_doc
+    assert "test_data.subpackage.subpackage.module" in api_doc
+    assert "test_data.blank" not in api_doc
 
 
 def test_get_api_documentation_respecting_template():
