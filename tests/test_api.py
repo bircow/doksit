@@ -12,6 +12,13 @@ def test_api_subcommand():
     assert "# API Reference" in result.output
 
 
+def test_api_subcommand_with_slash_at_the_end_of_package():
+    result = RUNNER.invoke(api, ["-p", "test_data/"])
+
+    assert result.exit_code == 0
+    assert "# API Reference" in result.output
+
+
 def test_api_subcommand_with_error():
     """
     Will raise PackageError, because here in directory Doksit cannot guess
