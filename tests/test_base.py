@@ -1,6 +1,5 @@
 import os
 import subprocess
-import re
 import tempfile
 
 import pytest
@@ -195,6 +194,8 @@ def test_find_files():
     expected_file_paths = [
         "test_data/blank.py",
         "test_data/module.py",
+        "test_data/named_objects_a.py",
+        "test_data/named_objects_b.py",
         "test_data/subpackage/module.py",
         "test_data/subpackage/subpackage/module.py",
     ]
