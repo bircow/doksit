@@ -4,11 +4,16 @@ import os
 import pytest
 
 from doksit.api import DoksitStyle
+from doksit.data_types import MyOrderedDict
+from doksit.exceptions import InvalidObject
 from doksit.models import Base
 
-from tests.test_data import module
+from tests.test_data import module, named_objects_a, named_objects_b
 
 doksit = DoksitStyle("test_data", "API")
+
+
+###############################################################################
 
 
 def test_get_api_documentation():
@@ -42,34 +47,6 @@ def test_get_api_documentation_respecting_template():
 ###############################################################################
 
 
-def test_get_documentation(file_metadata):
-    doc = doksit._get_documentation(file_metadata)
-
-    assert doc
-    assert "## test_data.module" in doc
-
-
-@pytest.mark.usefixtures("enable_alphabetical_order")
-def test_get_documentation_in_alphabetical_order():
-    file_metadata = Base.read_file("test_data/module.py")
-    doc = doksit._get_documentation(file_metadata)
-
-    assert doc.index("class Bar") < doc.index("class Foo")
-    assert doc.index("property variable") < doc.index("method method")
-    assert doc.index("function another_function") \
-        < doc.index("function function")
-
-
-def test_get_documentation_for_blank_file():
-    file_metadata = Base.read_file("test_data/blank.py")
-    doc = doksit._get_documentation(file_metadata)
-
-    assert doc is None
-
-
-###############################################################################
-
-
 def test_alphabetically():
     assert not doksit.alphabetically
 
@@ -82,36 +59,19 @@ def test_alphabetically_with_config_file():
 ###############################################################################
 
 
-def test_order_classes(file_metadata):
-    _, classes, _ = file_metadata
-    classes_copy = copy.deepcopy(classes)  # Important, otherwise tests fail.
-    ordered_classes = doksit._order_classes(module, classes_copy)
-    list_classes = list(ordered_classes.items())
+def test_get_class_documentation():
+    methods = ["__init__", "method", "static_method", "variable"]
+    doc = doksit.get_class_documentation(module, "Foo", methods)
 
-    assert list_classes[0][0] == "Bar"
-    assert list_classes[1][0] == "Foo"
-    assert list_classes[1][1][0] == "__init__"
-    assert list_classes[1][1][1] == "variable"
-    assert list_classes[1][1][2] == "method"
-    assert list_classes[1][1][3] == "static_method"
+    assert "### class Foo" in doc
 
 
 ###############################################################################
 
 
-def test_get_module_documentation():
-    module_doc = doksit.get_module_documentation(module)
-
-    assert module_doc
-    assert "This is a module docstring, right?" in module_doc
-
-
-###############################################################################
-
-
-def test_get_class_documentation(file_metadata):
+def test_get_classes_documentation(file_metadata):
     _, classes, _ = file_metadata
-    doc = doksit.get_class_documentation(module, classes)
+    doc = doksit.get_classes_documentation(module, classes)
 
     assert "### class Foo" in doc
     assert "### class Bar" in doc
@@ -120,53 +80,19 @@ def test_get_class_documentation(file_metadata):
 ###############################################################################
 
 
-def test_get_method_documentation_for_constructor(file_metadata):
-    _, classes, _ = file_metadata
-    method = classes["Foo"][0]
+def test_get_function_documentation():
+    doc = doksit.get_function_documentation(module, "function")
 
-    assert method == "__init__"
-
-    class_object = getattr(module, "Foo")
-    method_object = getattr(class_object, "__init__")
-
-    doc = doksit.get_method_documentation(module, method_object, "__init__")
-
-    assert doc
-    assert "#### constructor" in doc
-
-
-def test_get_method_documentation_for_property(file_metadata):
-    _, classes, _ = file_metadata
-
-    class_object = getattr(module, "Foo")
-    method_object = getattr(class_object, "variable")
-
-    doc = doksit.get_method_documentation(module, method_object, "variable")
-
-    assert doc
-    assert "#### property variable" in doc
-
-
-def test_get_method_documentation_for_method(file_metadata):
-    _, classes, _ = file_metadata
-
-    class_object = getattr(module, "Foo")
-    method_object = getattr(class_object, "method")
-
-    doc = doksit.get_method_documentation(module, method_object, "method")
-
-    assert doc
-    assert "#### method method" in doc
+    assert "### function function" in doc
 
 
 ###############################################################################
 
 
-def test_get_function_documentation(file_metadata):
+def test_get_functions_documentation(file_metadata):
     _, _, functions = file_metadata
-    doc = doksit.get_function_documentation(module, functions)
+    doc = doksit.get_functions_documentation(module, functions)
 
-    assert doc
     assert "### function function" in doc
 
 
@@ -295,3 +221,166 @@ def test_get_markdowned_docstring_for_function_function():
     assert arguments in docstring
     assert yields in docstring
     assert example in docstring
+
+
+###############################################################################
+
+
+def test_get_method_documentation_for_constructor(file_metadata):
+    _, classes, _ = file_metadata
+    method = classes["Foo"][0]
+
+    assert method == "__init__"
+
+    class_object = getattr(module, "Foo")
+    method_object = getattr(class_object, "__init__")
+
+    doc = doksit.get_method_documentation(module, method_object, "__init__")
+
+    assert doc
+    assert "#### constructor" in doc
+
+
+def test_get_method_documentation_for_property(file_metadata):
+    _, classes, _ = file_metadata
+
+    class_object = getattr(module, "Foo")
+    method_object = getattr(class_object, "variable")
+
+    doc = doksit.get_method_documentation(module, method_object, "variable")
+
+    assert doc
+    assert "#### property variable" in doc
+
+
+def test_get_method_documentation_for_method(file_metadata):
+    _, classes, _ = file_metadata
+
+    class_object = getattr(module, "Foo")
+    method_object = getattr(class_object, "method")
+
+    doc = doksit.get_method_documentation(module, method_object, "method")
+
+    assert doc
+    assert "#### method method" in doc
+
+
+###############################################################################
+
+
+def test_get_module_documentation():
+    module_doc = doksit.get_module_documentation(module)
+
+    assert "This is a module docstring, right?" in module_doc
+
+
+def test_get_module_documentation_with_module_heading_in():
+    module_doc = doksit.get_module_documentation(named_objects_a)
+
+    assert "test_data.named_objects_a" not in module_doc
+    assert "## Blabla" in module_doc
+
+
+def test_get_module_documentation_with_module_name_as_heading():
+    module_doc = doksit.get_module_documentation(named_objects_b)
+
+    assert "test_data.named_objects_b" not in module_doc
+    assert "## Named_Objects_B" in module_doc
+
+
+###############################################################################
+
+
+def test_get_documentation(file_metadata):
+    doc = doksit._get_documentation(file_metadata)
+
+    assert doc
+    assert "## test_data.module" in doc
+
+
+def test_get_documentation_for_blank_file():
+    file_metadata = Base.read_file("test_data/blank.py")
+    doc = doksit._get_documentation(file_metadata)
+
+    assert doc is None
+
+
+@pytest.mark.usefixtures("enable_alphabetical_order")
+def test_get_documentation_in_alphabetical_order():
+    file_metadata = Base.read_file("test_data/module.py")
+    doc = doksit._get_documentation(file_metadata)
+
+    assert doc.index("class Bar") < doc.index("class Foo")
+    assert doc.index("property variable") < doc.index("method method")
+    assert doc.index("function another_function") \
+        < doc.index("function function")
+
+
+def test_get_documentation_for_module_with_template_variables():
+    file_metadata = Base.read_file("test_data/named_objects_a.py")
+    doc = doksit._get_documentation(file_metadata)
+
+    assert "test_data.named_objects_b" not in doc
+    assert "## Blabla" in doc
+
+
+###############################################################################
+
+
+def test_get_updated_documentation():
+    orig_module_doc = doksit.get_module_documentation(named_objects_a)
+    classes = MyOrderedDict({"Foo": ["method"]})
+    functions = ["function"]
+    updated_module_doc = \
+        doksit._get_updated_documentation(orig_module_doc, named_objects_a,
+                                          classes, functions)
+
+    assert "{{ Foo }}" not in updated_module_doc
+    assert "{{ function }}" not in updated_module_doc
+    assert "### class Foo" in updated_module_doc
+    assert "### function function" in updated_module_doc
+
+
+###############################################################################
+
+
+def test_order_classes(file_metadata):
+    _, classes, _ = file_metadata
+    classes_copy = copy.deepcopy(classes)  # Important, otherwise tests fail.
+    ordered_classes = doksit._order_classes(module, classes_copy)
+    list_classes = list(ordered_classes.items())
+
+    assert list_classes[0][0] == "Bar"
+    assert list_classes[1][0] == "Foo"
+    assert list_classes[1][1][0] == "__init__"
+    assert list_classes[1][1][1] == "variable"
+    assert list_classes[1][1][2] == "method"
+    assert list_classes[1][1][3] == "static_method"
+
+
+###############################################################################
+
+
+def test_validate_variables():
+    variables = ["Foo", "function"]
+    _, orig_classes, _ = doksit.read_file("test_data/named_objects_a.py")
+    classes, functions = doksit._validate_variables(named_objects_a,
+                                                    variables,
+                                                    orig_classes)
+
+    assert classes == MyOrderedDict({"Foo": ["method"]})
+    assert functions == ["function"]
+
+
+def test_validate_variables_with_raised_error():
+    variables = ["blablabla"]
+
+    with pytest.raises(InvalidObject) as error:
+        doksit._validate_variables(named_objects_a, variables, MyOrderedDict())
+
+    message = (
+        "In a tests.test_data.named_objects_a's docstring is an "
+        "invalid template variable '{{ blablabla }}'."
+    )
+
+    assert str(error.value) == message
