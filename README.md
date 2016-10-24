@@ -58,7 +58,7 @@ Doksit will automatically detect the `<package_name>/` directory, browse its dir
 For the redirection use the standard Unix redirection:
 
 ```
-doksit api <package_name> > docs/api.md
+$ doksit api <package_name> > docs/api.md
 ```
 
 But if it fails (cannot detect a package directory), then you will be warned and prompted to use a `-p` / `--package` option:
@@ -110,7 +110,7 @@ But if you like the [MkDocs][mkdocs], don't need superior features (versioning, 
 
 ## Contribution
 
-If you've found a bug or want to suggest new features, please feel free to use [GitHub Issue Tracker](https://github.com/nait-aul/doksit/issues).
+If you've found a bug or want to suggest new features / improvements, please feel free to use [GitHub Issue Tracker](https://github.com/nait-aul/doksit/issues).
 
 ## License
 
