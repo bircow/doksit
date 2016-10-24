@@ -25,6 +25,18 @@ def test_alphabetically_with_config_file():
 ###############################################################################
 
 
+def test_has_reference_links_without_links():
+    assert not doksit.has_reference_links
+
+
+@pytest.mark.usefixtures("enable_reference_links")
+def test_has_reference_links_with_links_in_config_file():
+    assert doksit.has_reference_links
+
+
+###############################################################################
+
+
 def test_title():
     assert doksit.title == "API"
 
@@ -67,6 +79,13 @@ def test_get_api_documentation_respecting_template():
     assert "## test_data.module" in api_doc
 
     os.remove("docs/_api.md")
+
+
+@pytest.mark.usefixtures("enable_reference_links")
+def test_get_api_documentation_with_reference_links():
+    api_doc = doksit.get_api_documentation()
+
+    assert "[github]: https://github.com" in api_doc
 
 
 ###############################################################################

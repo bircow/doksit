@@ -57,6 +57,20 @@ class DoksitStyle(Base, DocstringParser):
         return False
 
     @property
+    def has_reference_links(self) -> bool:
+        """
+        True, if in the config file are placed reference links.
+        """
+        if self.config is not None:
+            reference_links = self.config.get("links", None)
+
+            if reference_links is not None \
+                    and isinstance(reference_links, dict):
+                return True
+
+        return False
+
+    @property
     def title(self) -> str:
         """
         Title for the API documentation.
@@ -74,6 +88,17 @@ class DoksitStyle(Base, DocstringParser):
                 return title
 
         return self._title
+
+    def add_reference_links(self, documentation: str) -> str:
+        """
+        Add reference links in Markdown format at the end of documentation.
+        """
+        rerefence_links = self.config.get("links")
+
+        for link in rerefence_links:
+            documentation += "[" + link + "]: " + rerefence_links[link] + "\n"
+
+        return documentation
 
     def get_api_documentation(self) -> str:
         """
@@ -122,7 +147,7 @@ class DoksitStyle(Base, DocstringParser):
                     file_content = \
                         file_content.replace(file_path, file_documentation)
 
-            return file_content
+            api_documentation = file_content
         else:
             api_documentation = "# " + self.title + "\n\n"
 
@@ -133,7 +158,10 @@ class DoksitStyle(Base, DocstringParser):
                 if file_documentation is not None:
                     api_documentation += file_documentation
 
-            return api_documentation
+        if self.has_reference_links:
+            api_documentation += self.add_reference_links(api_documentation)
+
+        return api_documentation
 
     def get_class_documentation(self, module: Any, class_name: str,
                                 methods: List[str]) -> str:
