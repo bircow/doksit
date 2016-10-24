@@ -1,6 +1,6 @@
 """
-Here are defined highlighters (`--smooth` and `--colored` flags) for generated
-API documentation.
+Here are defined highlighters (`--smooth` and `--colored` flags) for the
+generated API documentation.
 """
 
 import re
@@ -32,14 +32,14 @@ HEADERS = (
 
 class SmoothHighlighter(Base):
     """
-    Class for `--smooth` flag in the `doksit api` command.
+    Class for the `--smooth` flag of the `doksit api` command.
     """
 
     __slots__ = ("documentation")
 
     def __init__(self, documentation: str) -> None:
         """
-        Initialize an instance of SmoothHiglihter class.
+        Initialize an instance of `SmoothHiglihter` class.
 
         Arguments:
             documentation:
@@ -109,7 +109,7 @@ INLINE_CODE_REGEX = re.compile(r"`[^`]+`")
 
 class ColoredHighlighter(SmoothHighlighter):
     """
-    Class for `--colored` flag in the `doksit api` command.
+    Class for the `--colored` flag of the `doksit api` command.
 
     List of text patterns to be colored:
 
@@ -128,7 +128,7 @@ class ColoredHighlighter(SmoothHighlighter):
 
     def __init__(self, *args) -> None:
         """
-        Initialize an instance of ColoredHiglihter class.
+        Initialize an instance of `ColoredHiglihter` class.
 
         Arguments:
             *args:
@@ -150,6 +150,14 @@ class ColoredHighlighter(SmoothHighlighter):
 
                 if is_example_section:
                     is_example_section = False
+
+                    del split_doc[line_number]
+
+                    # Fix foreground and background color for the line now
+                    # placed in this index.
+
+                    split_doc[line_number] = \
+                        self._color_rest(split_doc[line_number])
                 else:
                     is_example_section = True
 
@@ -164,12 +172,12 @@ class ColoredHighlighter(SmoothHighlighter):
                     split_doc[line_number] = self._color_header(line)
 
                 elif line.startswith("[source](http"):
-                    if "34;40;1m" in split_doc[line_number - 2]:
+                    if "34;40;1m" in split_doc[line_number - 2]:  # Module.
                         # Links to a module will be removed, because they are
-                        # duplicate with Python module path + 1 blank line.
+                        # duplicate with Python module path.
 
                         del split_doc[line_number]
-                        del split_doc[line_number]
+                        del split_doc[line_number]  # Blank line.
 
                         # Fix foreground and background color for the line now
                         # placed in this index.
@@ -196,15 +204,15 @@ class ColoredHighlighter(SmoothHighlighter):
         Legend of used ANSI escape sequences:
 
         - 31;40;1m
-            - bold red foreground, black background
+            - bold red foreground, black background (title)
         - 34;40;1m
-            - bold blue foreground, black background
+            - bold blue foreground, black background (modules)
         - 32;40;1m
-            - bold green foreground, black background
+            - bold green foreground, black background (classes)
         - 33;40;1m
-            - bold yellow foreground, black background
+            - bold yellow foreground, black background (methods)
         - 36;40;1m
-            - bold cyan foreground, black background
+            - bold cyan foreground, black background (functions)
 
         Returns:
             The colored heading.
@@ -260,15 +268,19 @@ class ColoredHighlighter(SmoothHighlighter):
 
         Returns:
             Colored file path to a module with optional object location.
+
+        Example:
+            "-> doksit/api.py#L10-L20"  # Without colors here.
         """
-        line = line.replace("[source](", "") \
+        line = line \
+            .replace("[source](", "") \
             .replace(self.repository_prefix, "")
 
-        return START + "97;40m" + "-> " + line[:-1] + END
+        return START + "97;40m" + "-> " + line[:-1] + END  # -1 is ")".
 
     def _color_rest(self, line: str) -> str:
         """
-        Color rest of texts in the API documentation.
+        Color the rest of text in the API documentation.
 
         Arguments:
             line:
@@ -290,11 +302,19 @@ class ColoredHighlighter(SmoothHighlighter):
     @staticmethod
     def _color_inline_code(line: str) -> str:
         """
-        Color inline code(s) like the example sections.
+        Color inline code(s) like in the example sections (same foreground
+        and background colors).
 
         Arguments:
             line:
                 Line containing an inline code(s).
+
+        Legend of used ANSI escape sequences:
+
+        - 30;107m
+            - black foreground, white background (inline code)
+        - 97;40m
+            - white foreground, black background (rest of text)
 
         Returns:
             The colored inline code in that line.
@@ -307,6 +327,6 @@ class ColoredHighlighter(SmoothHighlighter):
 
             line = line \
                 .replace(inline_code, colored_inline_code) \
-                .replace("`", "")
+                .replace("`", "", 2)
 
         return line
