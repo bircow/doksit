@@ -38,7 +38,7 @@ class Base:
     @abc.abstractmethod
     def get_api_documentation(self):
         """
-        Abstract method for getting final parsed API documentation, which may
+        Abstract method for getting final parsed API documentation, which will
         be displayed to an user.
         """
         pass
@@ -66,10 +66,10 @@ class Base:
     @property
     def current_branch(self) -> Optional[str]:
         """
-        Get a current branch name.
+        Get current branch name.
 
         This works only for those who are using Git. If the Git is not used,
-        , then `None` will be returned.
+        then `None` will be returned.
 
         Example:
             "master"
@@ -85,7 +85,7 @@ class Base:
     @property
     def has_template(self) -> bool:
         """
-        Whether an user has a template (`docs/_api.md`) or not.
+        Whether user has a template (`docs/_api.md`) or not.
         """
         return os.path.isfile("docs/_api.md")
 
@@ -110,7 +110,7 @@ class Base:
     @property
     def repository_url(self) -> Optional[str]:
         """
-        Get an absolute URL path to a Github repository.
+        Get absolute URL path to a Github repository.
 
         If an user is not using Git & GitHub, then no error will be raised
         and returned only `None`.
@@ -131,69 +131,6 @@ class Base:
             repository_url = repository_url[:-4]
 
         return repository_url
-
-    @staticmethod
-    def get_line_numbers(object_name: Any) -> str:
-        """
-        Find on which lines is the given object defined / located.
-
-        Arguments:
-            object_name:
-                For which class, method, function to get the line numbers.
-
-        Note:
-            There is a problem for defined CLI commands (functions) using a
-            `click` package. It will raise `TypeError. Therefore it
-            will be silenced and returned only `#`.
-
-        Returns:
-            Range, where the object definition starts and ends.
-
-        Example:
-            "#L10-L25"
-        """
-        try:
-            source_lines, starting_line = inspect.getsourcelines(object_name)
-        except TypeError:
-            return "#"
-
-        ending_line = starting_line + len(source_lines) - 1
-
-        return "#L{starting_line}-L{ending_line}" \
-            .format(starting_line=starting_line, ending_line=ending_line)
-
-    def get_source_code_url(self, module: Any, object_name: Any=None) -> str:
-        """
-        Get an absolute path to the source file / object on GiHub.
-
-        If this method is called for an object, then a suffix (object location)
-        will be added for using GitHub feature line highlights.
-
-        Arguments:
-            module:
-                Module object.
-            object_name:
-                Class / method / function object.
-
-        Returns:
-            The absolute URL path or empty string if an user isn't using Git &
-            GitHub.
-
-        Example:
-            "https://.../nait-aul/doksit/blob/master/doksit/api.py#L1-L10"
-        """
-        repository_prefix = self.repository_prefix
-
-        if repository_prefix is not None:
-            module_path = module.__name__.replace(".", "/") + ".py"
-            url = "[source](" + str(repository_prefix) + module_path
-
-            if object_name is not None:
-                url += self.get_line_numbers(object_name)
-
-            return url + ")\n\n"
-        else:
-            return ""
 
     def find_files(self, package: str) -> List[str]:
         """
@@ -247,6 +184,70 @@ class Base:
                             file_paths.append(os.path.join(root, file))
 
         return file_paths
+
+    @staticmethod
+    def get_line_numbers(object_name: Any) -> str:
+        """
+        Find on which lines is the given object defined / located.
+
+        Arguments:
+            object_name:
+                For which class, method, function to get the line numbers.
+
+        Note:
+            There is a problem for defined CLI commands (functions) using a
+            `click` package. It will raise `TypeError. Therefore it
+            will be silenced and returned only `#`. The same goes for class
+            properties.
+
+        Returns:
+            Range, where the object definition starts and ends.
+
+        Example:
+            "#L10-L25"
+        """
+        try:
+            source_lines, starting_line = inspect.getsourcelines(object_name)
+        except TypeError:
+            return "#"
+
+        ending_line = starting_line + len(source_lines) - 1
+
+        return "#L{starting_line}-L{ending_line}" \
+            .format(starting_line=starting_line, ending_line=ending_line)
+
+    def get_source_code_url(self, module: Any, object_name: Any=None) -> str:
+        """
+        Get an absolute path to the source file / object on GiHub.
+
+        If this method is called for an object, then a suffix (object location)
+        will be added for using GitHub feature line highlights.
+
+        Arguments:
+            module:
+                Module object.
+            object_name:
+                Class / method / function object.
+
+        Returns:
+            The absolute URL path or empty string if an user isn't using Git &
+            GitHub.
+
+        Example:
+            "https://.../nait-aul/doksit/blob/master/doksit/api.py#L1-L10"
+        """
+        repository_prefix = self.repository_prefix
+
+        if repository_prefix is not None:
+            module_path = module.__name__.replace(".", "/") + ".py"
+            url = "[source](" + str(repository_prefix) + module_path
+
+            if object_name is not None:
+                url += self.get_line_numbers(object_name)
+
+            return url + ")\n\n"
+        else:
+            return ""
 
     @staticmethod
     def read_file(file_path: str) -> Tuple[str, MyOrderedDict, List[str]]:
@@ -324,14 +325,14 @@ class DocstringParser:
                                    docstring: List[str],
                                    object_name: Any=None) -> List[str]:
         """
-        Markdown the `Arguments` section.
+        Markdown the `Arguments:` section.
 
         Arguments:
-            line_number (int):
-                Where the `Arguments` section starts.
-            docstring (List[str]):
+            line_number:
+                Where the `Arguments:` section starts.
+            docstring:
                 Split docstring.
-            object_name (Any):
+            object_name:
                 Function / method object for getting its parameters annotation.
 
         Example: (markdown)
@@ -377,7 +378,7 @@ class DocstringParser:
             automatically inserted.
 
         Returns:
-            Updated split docstring with the markdowned `Arguments`
+            Updated split docstring with the markdowned `Arguments:`
             section.
         """
         # Codes below are shared with `markdown_attributes_section` method, but
@@ -441,9 +442,11 @@ class DocstringParser:
         """
         Markdown the `Attributes:` section.
 
-        The principle is almost the same as for the `Arguments:` section
-        including arguments (see its documentation). The difference is that
-        you have to write data types for each attribute yourself.
+        The principle is almost same as for the `Arguments:` section including
+        arguments (see its documentation), except the `object_name`.
+
+        The difference is that you have to write data types for each attribute
+        yourself.
         """
         return self.markdown_arguments_section(line_number, docstring)
 
@@ -459,9 +462,9 @@ class DocstringParser:
             be broken.
 
         Arguments:
-            line_number (int):
-                Where the `Example` section starts.
-            docstring (List[str]):
+            line_number:
+                Where the `Example:` section starts.
+            docstring:
                 Split docstring.
 
         Example: (markdown)
@@ -494,7 +497,7 @@ class DocstringParser:
                 ```
 
         Returns:
-            Updated split docstring with the markdowned `Example` section.
+            Updated split docstring with the markdowned `Example:` section.
         """
         example_header = docstring[line_number]
 
@@ -542,9 +545,9 @@ class DocstringParser:
         Markdown the `Note:` section.
 
         Arguments:
-            line_number (int):
-                Where the `Note` section starts.
-            docstring (List[str]):
+            line_number:
+                Where the `Note:` section starts.
+            docstring:
                 Split docstring.
 
         Example: (markdown)
@@ -557,7 +560,7 @@ class DocstringParser:
                     Note description.
 
         Returns:
-            Updated split docstring with the markdowned `Note` section.
+            Updated split docstring with the markdowned `Note:` section.
         """
         docstring[line_number] = "**" + docstring[line_number] + "**"
 
@@ -570,9 +573,9 @@ class DocstringParser:
         Markdown the `Raises:` section.
 
         Arguments:
-            line_number (int):
-                Where the `Raises` section starts.
-            docstring (List[str]):
+            line_number:
+                Where the `Raises:` section starts.
+            docstring:
                 Split docstring.
 
         Example: (markdown)
@@ -612,10 +615,10 @@ class DocstringParser:
             Be careful with numbered error descriptions (one error type may
             occur multiple times, eg. validation in the `__init__` method and
             not separately in setters), you may use it maximally 9x times, then
-            a parser stops work.
+            a Doksit parser stops work.
 
         Returns:
-            Updated split docstring with the markdowned `Raises` section.
+            Updated split docstring with the markdowned `Raises:` section.
         """
         docstring[line_number] = "**" + docstring[line_number] + "**\n"
 
@@ -668,11 +671,11 @@ class DocstringParser:
         Markdown the `Returns:` section.
 
         Arguments:
-            line_number (int):
-                Where the `Returns` section starts.
-            docstring (List[str]):
+            line_number:
+                Where the `Returns:` section starts.
+            docstring:
                 Split docstring.
-            object_name (Any)
+            object_name:
                 Function / method object for getting its return annotation.
 
         Example: (markdown)
@@ -706,7 +709,7 @@ class DocstringParser:
             automatically inserted.
 
         Returns:
-            Updated split docstring with the markdowned `Returns` section.
+            Updated split docstring with the markdowned `Returns:` section.
         """
         docstring[line_number] = "**" + docstring[line_number] + "**\n"
 
@@ -739,36 +742,15 @@ class DocstringParser:
         return docstring
 
     @staticmethod
-    def _align_rest_return(docstring: List[str], start: int) -> List[str]:
-        """
-        Arguments:
-            docstring (List[str]):
-                Original object docstring.
-            start (int):
-                Where the multine description starts.
-
-        Returns:
-            List[str]:
-                Updated original docstring.
-        """
-        for line_number, line in enumerate(docstring[start:], start=start):
-            if line == "":  # End of the `Returns:` section.
-                break
-            else:
-                docstring[line_number] = " " * 6 + line.lstrip(" ")
-
-        return docstring
-
-    @staticmethod
     def markdown_todo_section(line_number: int, docstring: List[str]) \
             -> List[str]:
         """
         Markdown the `Todo:` section.
 
         Arguments:
-            line_number (int):
-                Where the `Todo` section starts.
-            docstring (List[str]):
+            line_number:
+                Where the `Todo:` section starts.
+            docstring:
                 Split docstring.
 
         Example: (markdown)
@@ -793,7 +775,7 @@ class DocstringParser:
                       over two lines
 
         Returns:
-            Updated split docstring with the markdowned `Todo` section.
+            Updated split docstring with the markdowned `Todo:` section.
         """
         docstring[line_number] = "**" + docstring[line_number] + "**\n"
 
@@ -818,7 +800,7 @@ class DocstringParser:
         """
         Markdown the `Warning:` section.
 
-        The principle is the same as for the `Note:` section including
+        The principle is same as for the `Note:` section including
         arguments (see its documentation).
         """
         return self.markdown_note_section(line_number, docstring)
@@ -828,11 +810,34 @@ class DocstringParser:
         """
         Markdown the `Yields:` section.
 
-        The principle is the same as for the `Returns:` section including
+        The principle is same as for the `Returns:` section including
         arguments (see its documentation).
         """
         return self.markdown_returns_section(line_number, docstring,
                                              object_name)
+
+    @staticmethod
+    def _align_rest_return(docstring: List[str], start: int) -> List[str]:
+        """
+        Aling the rest of text (description) in the `Return:` section.
+
+        Arguments:
+            docstring (List[str]):
+                Original object docstring.
+            start (int):
+                Where the multine description starts.
+
+        Returns:
+            List[str]:
+                Updated original docstring.
+        """
+        for line_number, line in enumerate(docstring[start:], start=start):
+            if line == "":  # End of the `Returns:` section.
+                break
+            else:
+                docstring[line_number] = " " * 6 + line.lstrip(" ")
+
+        return docstring
 
     @staticmethod
     def _parse_parameters(object_name: Any) -> dict:
@@ -850,8 +855,9 @@ class DocstringParser:
         parse.
 
         Returns:
-            Parameter names with its parsed variant or nothing (no annotation
-            found).
+            dict:
+                Parameter names with its parsed variant or nothing (no
+                annotation found).
 
         Example:
             {
@@ -884,7 +890,7 @@ class DocstringParser:
                 if to_parse.startswith("**"):  # Eg. **kwargs
                     parameter = "**" + parameter
 
-                elif to_parse.startswith("*"):
+                elif to_parse.startswith("*"):  # Eg. *args
                     parameter = "*" + parameter
 
                 parsed_parameters[parameter] = "{parameter} ({annotation}" \
@@ -913,7 +919,9 @@ class DocstringParser:
                 For which function / method to get its return annotation.
 
         Returns:
-            The parsed return annotation or nothing (no annotation found).
+            str:
+                The parsed return annotation or `"None"` (in string format),
+                if no return annotation was defined.
 
         Example:
             "List[str]"
