@@ -6,16 +6,25 @@ Here are defined own exceptions.
 class InvalidObject(Exception):
     """
     When a user placed into a module docstring a template variable with
-    invalid object reference (to a class / funciton).
+    invalid object reference to a class / funciton.
     """
     __slots__ = ("module", "object_name")
 
-    def __init__(self, module_name: str, object_name: str):
+    def __init__(self, module_name: str, object_name: str) -> None:
+        """
+        Initialize an object of class `InvalidObject`.
+
+        Arguments:
+            module_name:
+                Name of a module.
+            object_name:
+                Name of an object.
+        """
         super().__init__()
         self.module_name = module_name
         self.object_name = object_name
 
-    def __str__(self):
+    def __str__(self) -> str:
         return (
             "In a {module}'s docstring is an invalid template variable "
             "'{{{{ {variable} }}}}'."
@@ -24,8 +33,8 @@ class InvalidObject(Exception):
 
 class PackageError(Exception):
     """
-    When Doksit cannot find a package directory.
+    When Doksit cannot guess / detect a package directory.
     """
 
-    def __str__(self):
+    def __str__(self) -> str:
         return "Cannost guess a package, please use option:\n'-p <package>'"
