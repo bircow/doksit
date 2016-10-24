@@ -12,6 +12,7 @@ def test_get_colored_api_documentation(documentation):
 
     assert colored_doc
     assert "\x1b[31;40;1m# API" in colored_doc
+    assert "30;107m```python" in colored_doc
     assert "**Note**" not in colored_doc
     assert "[source](" not in colored_doc
 
@@ -31,7 +32,6 @@ def test_get_colored_api_documentation(documentation):
 def test_color_heading(text, color):
     colored_heading = COLORED._color_heading(text)
 
-    print(colored_heading)
     assert text in colored_heading
     assert color in colored_heading
 
