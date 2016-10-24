@@ -1,5 +1,5 @@
 """
-Here are defined control / main objects for running the following command:
+Here are defined centrol / main objects for running the following command:
 
     $ doksit api PACKAGE_DIRECTORY
 """
@@ -19,8 +19,14 @@ class DoksitStyle(Base, DocstringParser):
     """
     Main class for generating API documentation from docstrings written
     in the Doksit style (Google + almost all Napoleon + Doksit layer).
+
+    Attributes:
+        package (str):
+            Path to a Python package.
+
+    Other attributes are defined separately in properties.
     """
-    __slots__ = ("package", "title")
+    __slots__ = ("package")
 
     def __init__(self, package: str, title: str) -> None:
         """
@@ -33,7 +39,7 @@ class DoksitStyle(Base, DocstringParser):
                 Title for the API documentation output.
         """
         self.package = package[:-1] if package.endswith("/") else package
-        self.title = title
+        self._title = title
 
     @property
     def alphabetically(self) -> bool:
@@ -49,6 +55,25 @@ class DoksitStyle(Base, DocstringParser):
                     return True
 
         return False
+
+    @property
+    def title(self) -> str:
+        """
+        Title for the API documentation.
+
+        Order of getting title (lookup):
+
+        1. config file
+        2. option `-t / --title`
+        3. default value `API Reference`
+        """
+        if self.config is not None:
+            title = self.config.get("title", None)
+
+            if title is not None:
+                return title
+
+        return self._title
 
     def get_api_documentation(self) -> str:
         """
@@ -99,16 +124,16 @@ class DoksitStyle(Base, DocstringParser):
 
             return file_content
         else:
-            api_documentation = ["# " + self.title]
+            api_documentation = "# " + self.title + "\n\n"
 
             for file in file_paths:
                 file_metadata = self.read_file(file)
                 file_documentation = self._get_documentation(file_metadata)
 
                 if file_documentation is not None:
-                    api_documentation.append(file_documentation)
+                    api_documentation += file_documentation
 
-            return "\n".join(api_documentation)
+            return api_documentation
 
     def get_class_documentation(self, module: Any, class_name: str,
                                 methods: List[str]) -> str:
@@ -149,7 +174,7 @@ class DoksitStyle(Base, DocstringParser):
             class_doc += self.get_method_documentation(module, method_obj,
                                                        method_name)
 
-        return class_doc + "\n"
+        return class_doc + "\n\n"
 
     def get_classes_documentation(self, module: Any, classes: MyOrderedDict) \
             -> str:
@@ -216,7 +241,7 @@ class DoksitStyle(Base, DocstringParser):
         function_doc += self.get_source_code_url(module, function_obj)
         function_doc += self.get_markdowned_docstring(function_obj)
 
-        return function_doc + "\n"
+        return function_doc + "\n\n"
 
     def get_functions_documentation(self, module: Any, functions: List[str]) \
             -> str:
@@ -409,7 +434,7 @@ class DoksitStyle(Base, DocstringParser):
             module_heading = "## {module_name}\n\n" \
                 .format(module_name=module_name)
 
-        return module_heading + module_url + module_docstring + "\n"
+        return module_heading + module_url + module_docstring + "\n\n"
 
     def _get_documentation(self, file_metadata: tuple) -> Optional[str]:
         """

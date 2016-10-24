@@ -13,6 +13,31 @@ from tests.test_data import module, named_objects_a, named_objects_b
 doksit = DoksitStyle("test_data", "API")
 
 
+def test_alphabetically():
+    assert not doksit.alphabetically
+
+
+@pytest.mark.usefixtures("enable_alphabetical_order")
+def test_alphabetically_with_config_file():
+    assert doksit.alphabetically
+
+
+###############################################################################
+
+
+def test_title():
+    assert doksit.title == "API"
+
+
+def test_title_written_in_config_file():
+    with open(".doksit.yml", "w") as file:
+        file.write("title: My super title")
+
+    assert doksit.title == "My super title"
+
+    os.remove(".doksit.yml")
+
+
 ###############################################################################
 
 
@@ -42,18 +67,6 @@ def test_get_api_documentation_respecting_template():
     assert "## test_data.module" in api_doc
 
     os.remove("docs/_api.md")
-
-
-###############################################################################
-
-
-def test_alphabetically():
-    assert not doksit.alphabetically
-
-
-@pytest.mark.usefixtures("enable_alphabetical_order")
-def test_alphabetically_with_config_file():
-    assert doksit.alphabetically
 
 
 ###############################################################################
