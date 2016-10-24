@@ -54,6 +54,16 @@ def enable_alphabetical_order():
     os.remove(".doksit.yml")
 
 
+@pytest.fixture
+def enable_reference_links():
+    with open(".doksit.yml", "w") as file:
+        file.write("links:\n  github: https://github.com")
+
+    yield
+
+    os.remove(".doksit.yml")
+
+
 @pytest.fixture(scope="session")
 def file_metadata():
     return Base.read_file("test_data/module.py")
