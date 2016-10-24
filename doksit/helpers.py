@@ -11,14 +11,15 @@ from doksit.exceptions import PackageError
 
 def _is_package(package: str) -> bool:
     """
-    Check, if the given package is really a package and not (subpackage).
+    Check, if the given package is really a package and not subpackage.
 
     Arguments:
         package (str):
             Name of package.
 
     Returns:
-        True if the given package is a package.
+        bool:
+            True if the given package is a package.
     """
     return "." not in package
 
