@@ -92,6 +92,10 @@ class DoksitStyle(Base, DocstringParser):
     def add_reference_links(self, documentation: str) -> str:
         """
         Add reference links in Markdown format at the end of documentation.
+
+        Arguments:
+            documentation:
+                Generated API documentation.
         """
         rerefence_links = self.config.get("links")
 
