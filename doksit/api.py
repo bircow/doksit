@@ -1,5 +1,5 @@
 """
-Here are defined centrol / main objects for running the following command:
+Here are defined main objects for running the following command:
 
     $ doksit api PACKAGE_DIRECTORY
 """
