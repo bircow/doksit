@@ -40,6 +40,18 @@ class InvalidPlace(Exception):
         return "Cannot create the TOC, you're in the wrong directory."
 
 
+class MissingTocFile(Exception):
+    """
+    When Doksit cannot find a `_toc.md`.
+
+    It's important for generating the table of contets (which files will be
+    scanned).
+    """
+
+    def __str__(self) -> str:
+        return "Cannot find the `_toc.md` file."
+
+
 class PackageError(Exception):
     """
     When Doksit cannot guess / detect a package directory.
