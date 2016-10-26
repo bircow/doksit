@@ -202,9 +202,11 @@ Content for these headers write as you are writing with Napoleon. There is only 
 
 2. You don't have to write information about data types and default values for the `Arguments:`, `Returns:` and `Yields` section. They will be added automatically into the docstrings if you are using type hints (new feature since Python 3.0). So simply write:
 
-    ```
+    ```python
+    """
     Arguments:
         x: blabla
+    """
     ```
 
 ## Doksit layer
@@ -213,7 +215,8 @@ Doksit has own "layer" (minor features) on top of `Google Docstring Style` + `Na
 
 1. automatically insertion of data types (arguments + returned value) and default values into a generated API documentation, if type hints are used.
 
-    ```
+    ```python
+    """
     Instead of:
 
         x: (str, optional, default "Foo"):
@@ -223,12 +226,14 @@ Doksit has own "layer" (minor features) on top of `Google Docstring Style` + `Na
 
         x:
             Description ...
+    """
     ```
 
 
 2. support for description indentation after colon `:` (for those who used Napoleon before)
 
-    ```
+    ```python
+    """
     Instead of:
 
         x: Long description
@@ -239,25 +244,31 @@ Doksit has own "layer" (minor features) on top of `Google Docstring Style` + `Na
         x:
             Long description
             of `x` argument.
+
+    """
     ```
 
 2. numbering errors in the `Raises:` section
 
     - eg. in a constructor is also a validator of data types and there is twice `raise ValueError("...")` for two different arguments:
 
-        ```
+        ```python
+        """
         Raises:
             ValueError:
                 1. for a argument `a`
                 2. for a
                    argument `b`
+        """
         ```
 
 3. you may specify language in the `Example:` section (default is Python)
 
-    ```
+    ```python
+    """
     Example: (markdown)
         # Title
+    """
     ```
 
 4. writing pure Markdown (according to [Commonmark specification](http://commonmark.org/help/)) and [GitHub flavored MD](https://guides.github.com/features/mastering-markdown/#GitHub-flavored-markdown) into the docstrings
