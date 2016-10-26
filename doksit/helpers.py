@@ -2,11 +2,62 @@
 Here are defined helping functions.
 """
 
+import os
 import os.path
 
 from setuptools import find_packages
 
-from doksit.exceptions import PackageError
+from doksit.exceptions import PackageError, MissingTocFile
+
+
+def get_toc_file_path(is_inside: bool) -> str:
+    """
+    Get a file path to the `_toc.md` file.
+
+    Note:
+        The file path may be invalid (doesn't exists), but this is checked
+        in another function (see below).
+
+    Arguments:
+        is_inside (bool):
+            If a user is inside the `docs/` folder or outside.
+
+    Returns:
+        str:
+            The file path to the `_toc.md`.
+
+    Example:
+        /home/<user>/<directory>/doksit_env/docs/_toc.md
+    """
+    current_directory = os.getcwd()
+    file = "_toc.md"
+
+    if is_inside:
+        path = os.path.join(current_directory, file)
+    else:
+        path = os.path.join(current_directory, "docs", file)
+
+    return path
+
+
+def check_for_toc_file(is_inside: bool) -> None:
+    """
+    Check if a user has `_toc.md` file.
+
+    Arguments:
+        is_inside:
+            If a user is inside the `docs/` folder or outside.
+
+    Raises:
+        MissingTocFile:
+            Cannot find the `_toc.md` file.
+    """
+    path = get_toc_file_path(is_inside)
+
+    try:
+        open(path).close()
+    except FileNotFoundError:
+        raise MissingTocFile
 
 
 def _is_package(package: str) -> bool:
