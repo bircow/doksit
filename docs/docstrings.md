@@ -288,3 +288,13 @@ Doksit has own "layer" (minor features) on top of `Google Docstring Style` + `Na
     [github]: https://github.com
     """
     ```
+
+About links, you should rather use reference links if a link is loooong or shorteners. Rerefence links may be written at the end of docstring (example above) or in the config (`.doksit.yml`) like:
+
+```
+links:
+  doksit: https://github.com/nait-aul/doksit
+  pypi: https://pypi.python.org/pypi/doksit
+```
+
+Benefit of the reference links is that you may use them across modules.
