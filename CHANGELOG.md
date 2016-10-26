@@ -18,6 +18,7 @@
 **Improvement:**
 
 - shortened names of classes and functions (#3)
+- created `CONTRIBUTING.md` (#7)
 - converted unittests to pytests (#6)
 - more documentation (#8)
 - added backward compatibility with Python 3.x (#12)
