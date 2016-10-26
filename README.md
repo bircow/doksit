@@ -77,9 +77,13 @@ The structure of the API documentation without using templates is following:
 
 ## <package_name>.<module_name>
 
+[source](https://github.com/<username>/<repository>/blob/<branch>/<package_directory>/<file>.py)
+
 Content of the module docstring.
 
 ### class <class_name>
+
+[source](.../<file>.py#L1-L10)
 
 Content of the class docstring.
 
@@ -87,9 +91,13 @@ Content of the class docstring.
 #### property <property_name>
 #### method <method_name>
 
+[source](...)
+
 Content of the constructor / property / method docstring.
 
 ### function <function_name>
+
+[source](...)
 
 Content of the function docstring.
 ```
