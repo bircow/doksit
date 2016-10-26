@@ -31,6 +31,15 @@ class InvalidObject(Exception):
         ).format(module=self.module_name, variable=self.object_name)
 
 
+class InvalidPlace(Exception):
+    """
+    When a user has ran `doksit toc` subcommand in a wrong place.
+    """
+
+    def __str__(self) -> str:
+        return "Cannot create the TOC, you're in the wrong directory."
+
+
 class PackageError(Exception):
     """
     When Doksit cannot guess / detect a package directory.
