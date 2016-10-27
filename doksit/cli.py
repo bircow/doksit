@@ -18,7 +18,9 @@ import subprocess
 import click
 
 from doksit.api import DoksitStyle
-from doksit.helpers import guess_package
+from doksit.exceptions import InvalidPlace
+from doksit.helpers import guess_package, check_for_toc_file
+from doksit.toc import TableOfContents
 from doksit.utils.highlighters import ColoredHighlighter, SmoothHighlighter
 
 
@@ -74,3 +76,22 @@ def api(package: str, title: str, smooth: bool, colored: bool) \
         click.echo_via_pager(smooth_parser.get_api_documentation())
     else:
         click.echo_via_pager(api_documentation)
+
+
+@cli.command()
+def toc():
+    """
+    Create table of contents with links to the documentation on gitHub.
+    """
+    if "docs" in os.listdir():
+        is_inside = False
+        check_for_toc_file(is_inside)
+    elif os.path.basename(os.getcwd()) == "docs":
+        is_inside = True
+        check_for_toc_file(is_inside)
+    else:
+        raise InvalidPlace
+
+    TableOfContents().generate_toc(is_inside)
+
+    click.echo("OK")
