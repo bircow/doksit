@@ -36,6 +36,11 @@ And my own proposals:
 - use Doksit docstring style
 - order imported objects / classes / methods / function alphabetically
 
+    - about imported objects, standard libraries should be imported like 
+    `import os`
+
+        - standard module `typing` (since Python 3.5) is taken as external due to Python 3.3 and 3.4 
+
     - about methods, first is a constructor (if exists) -> properties ->
     public methods -> private methods (`def _...`) -> protected methods
     (`def __...`)
