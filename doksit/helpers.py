@@ -12,7 +12,7 @@ from doksit.exceptions import PackageError, MissingTocFile
 
 def get_toc_file_path(is_inside: bool) -> str:
     """
-    Get a file path to the `_toc.md` file.
+    Get an absolute file path to the `_toc.md` file.
 
     Note:
         The file path may be invalid (doesn't exists), but this is checked
