@@ -34,6 +34,14 @@ And my own proposals:
 
 - use [type hints](https://www.python.org/dev/peps/pep-0484/)
 - use Doksit docstring style
+- order imported objects / classes / methods / function alphabetically
+
+    - about methods, first is a constructor (if exists) -> properties ->
+    public methods -> private methods (`def _...`) -> protected methods
+    (`def __...`)
+    - about functions, if one depends on another (usually a private one), put
+    the private function before the public
+
 - do **NOT** glue for example 50 lines of code together, please use blank line to separete logic
 
     - before a compound statemnt (`if`, `while` etc.) is 1 blank line
