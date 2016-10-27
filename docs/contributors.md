@@ -2,7 +2,7 @@
 
 If you want to actively contribute to the Doksit (by this I mean pull requests), then keep on reading.
 
-I appreciate PL for bugs or improving codes (readability / speed), but if you 
+I appreciate PL for bugs or improving codes (readability / speed / shortened variant), but if you 
 want to write a new feature, please:
 
 1. suggest it on the [Issue Tracker](https://github.com/nait-aul/doksit/issues)
