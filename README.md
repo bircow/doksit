@@ -6,15 +6,6 @@
 
 `Doksit` is an API documentation generator (draft) for the [MkDocs][mkdocs] project (lightweight and simple alternative to [Sphinx][sphinx]) at the moment.
 
-In the future it will be also:
-
-- docstring linter
-- TODO notifier
-- integrated with the `MkDocs` (easy interlinks to tbe API, one command for everything etc.)
-- open to 3rd party packages (eg. different docstring parser)
-
-\+ has own `MkDocs` theme
-
 ## Installation
 
 Doksit is available only for Python 3.x version.
