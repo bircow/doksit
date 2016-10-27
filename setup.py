@@ -39,7 +39,9 @@ if sys.version_info < (3, 5, 0):
 setup(
     name="doksit",
     version="0.2.0",
-    description="Future all-in-one documentation tool for Python packages.",
+    description=(
+        "Future lightweight all-in-one documentation tool for Python packages."
+    ),
     long_description=long_description,
     author="Nait Aul",
     author_email="nait-aul@protonmail.com",
