@@ -10,7 +10,7 @@ In the future it will be also:
 
 - docstring linter
 - TODO notifier
-- integrated with the `MkDocs` (easy interlinks to API, one command for everything etc.)
+- integrated with the `MkDocs` (easy interlinks to tbe API, one command for everything etc.)
 - open to 3rd party packages (eg. different docstring parser)
 
 \+ has own `MkDocs` theme
