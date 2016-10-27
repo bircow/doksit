@@ -54,7 +54,7 @@ class TableOfContents:
 
         bullet_point = BULLET_POINT[heading_level]
         link_description = "[" + original_heading + "]"
-        link_source = "(" + url_path + encoded_heading +")"
+        link_source = "(" + url_path + encoded_heading + ")"
 
         return bullet_point + link_description + link_source
 
