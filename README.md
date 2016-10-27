@@ -2,7 +2,6 @@
 
 [![Build Status](https://travis-ci.org/nait-aul/doksit.svg?branch=master)](https://travis-ci.org/nait-aul/doksit)
 [![codecov](https://codecov.io/gh/nait-aul/doksit/branch/master/graph/badge.svg)](https://codecov.io/gh/nait-aul/doksit)
-![Pylint](https://img.shields.io/badge/pylint%20doksit-10%2F10-brightgreen.svg)
 
 `Doksit` is an API documentation generator (draft) for the [MkDocs][mkdocs] project (lightweight and simple alternative to [Sphinx][sphinx]) at the moment.
 
