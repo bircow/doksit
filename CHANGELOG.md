@@ -4,6 +4,7 @@
 
 **Features:**
 
+- added `doksit toc` subcommand for generating the TOC (#1)
 - support for module docstring (#2)
 - added links to source code (#4)
 - added `--colored` flag for the `doksit api` command (#19)
