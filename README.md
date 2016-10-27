@@ -20,8 +20,6 @@ In the future it will be also:
 Doksit is available only for Python 3.x version.
 
 ```
-# DO NOT INSTALL IT YET, new version 0.2.0 will be shipped soon (26 - 27th).
-
 $ pip install doksit
 ```
 
