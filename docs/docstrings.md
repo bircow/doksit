@@ -6,7 +6,7 @@ For those who have used [Napoleon](https://pypi.python.org/pypi/sphinxcontrib-na
 
 If you are completely new to Python docstrings styling / formatting or even have never ever written a docstring, then pay attention.
 
-### Why you should care about docstring style / format?
+### Benefits of using formatted docstrings
 
 1. enough information about a given object without reading its code
    - brief info about object's behaviour

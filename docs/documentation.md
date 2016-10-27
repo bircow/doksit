@@ -42,7 +42,7 @@ For both commands, you should run them in the root of your repository (next to `
 
 ## Modifying the documentation output
 
-### Title
+### API Title
 
 Default title is `API Reference`. 
 
@@ -60,7 +60,7 @@ If you want different title, you may choose between:
     title: My Own API Title
     ```
 
-### Order of classes / functions
+### Order of classes and functions
 
 Default is the order as they are defined in a module:
 
@@ -79,7 +79,7 @@ order: a-z  # or
 order: alphabetically
 ```
 
-### Choose, which objects will be in the API documentation
+### Choose which objects will be in the API documentation
 
 In the module docstrings you use template variables with references to objects, which will be in the documentation:
 
@@ -99,7 +99,7 @@ There is not support for methods, if you don't want some to be visible, change t
 1. if you write bad class / function name, don't worry, you will be warned
 2. don't forget to use spaces between `{{` and `}}`
 
-### Choose, which modules will be in the API documentation
+### Choose which modules will be in the API documentation
 
 If you don't want the documentation for all the Python modules, create a `_api.md` file in the `docs/` folder like:
 
